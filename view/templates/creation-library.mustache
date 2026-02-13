@@ -1,0 +1,20 @@
+<div class="creations wa-stack">
+    <h2>My Creations</h2>
+    <div class="wa-cluster" style="--max-column-size: 300px">
+        {{#creations}}
+        <wa-card>
+             <div slot="header">Creation: {{id}}</div>
+             <p>Size: {{width}}x{{height}}</p>
+             <p>Layers: {{layers.length}}</p>
+             <div slot="footer">
+                <wa-button variant="primary" data-id="{{id}}" class="edit-btn">Edit</wa-button>
+                <wa-button variant="danger" data-id="{{id}}" class="delete-btn">Delete</wa-button>
+             </div>
+        </wa-card>
+        {{/creations}}
+        {{^creations}}
+        <p>No creations yet.</p>
+        {{/creations}}
+    </div>
+    <wa-button id="create-new" variant="primary">Create New Creation</wa-button>
+</div>

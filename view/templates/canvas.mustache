@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: transparent;
+        }
+        #canvas {
+            border: 1px solid #ccc;
+            width: {{creation.width}}px;
+            height: {{creation.height}}px;
+            background-image: url({{{bgSrc}}});
+            background-size: cover;
+            background-position: center;
+            background-color: white;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .canvas {
+            position: relative;
+            --canvas-padding-vertical: 20px;
+            --canvas-padding-horizontal: 20px;
+        }
+        .canvas__slot {
+            position: absolute;
+            min-width: 25px;
+            min-height: 25px;
+            background-color: rgba(0, 169, 212, 0.7);
+        }
+        .canvas__slot--top-left {
+            top: var(--canvas-padding-vertical);
+            left: var(--canvas-padding-horizontal);
+        }
+        .canvas__slot--top-middle {
+            top: var(--canvas-padding-vertical);
+            left: 50%;
+            transform: translate(-50%, 0);
+        }
+        .canvas__slot--top-right {
+            top: var(--canvas-padding-vertical);
+            right: var(--canvas-padding-horizontal);
+        }
+        .canvas__slot--center-left {
+            top: 50%;
+            left: var(--canvas-padding-horizontal);
+            transform: translate(0, -50%);
+        }
+        .canvas__slot--center-middle {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .canvas__slot--center-right {
+            top: 50%;
+            right: var(--canvas-padding-horizontal);
+            transform: translate(0, -50%);
+        }
+        .canvas__slot--bottom-left {
+            bottom: var(--canvas-padding-vertical);
+            left: var(--canvas-padding-horizontal);
+        }
+        .canvas__slot--bottom-middle {
+            bottom: var(--canvas-padding-vertical);
+            left: 50%;
+            transform: translate(-50%, 0);
+        }
+        .canvas__slot--bottom-right {
+            bottom: var(--canvas-padding-vertical);
+            right: var(--canvas-padding-horizontal);
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas" class="canvas">
+        <div class="canvas__slot canvas__slot--top-left"></div>
+        <div class="canvas__slot canvas__slot--top-middle"></div>
+        <div class="canvas__slot canvas__slot--top-right"></div>
+        <div class="canvas__slot canvas__slot--center-left"></div>
+        <div class="canvas__slot canvas__slot--center-middle"></div>
+        <div class="canvas__slot canvas__slot--center-right"></div>
+        <div class="canvas__slot canvas__slot--bottom-left"></div>
+        <div class="canvas__slot canvas__slot--bottom-middle"></div>
+        <div class="canvas__slot canvas__slot--bottom-right"></div>
+        <!-- Layers will be rendered here -->
+    </div>
+</body>
+</html>

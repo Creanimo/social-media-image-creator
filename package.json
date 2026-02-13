@@ -1,0 +1,30 @@
+{
+  "name": "social-media-image-creator",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/Creanimo/social-media-image-creator#readme",
+  "bugs": {
+    "url": "https://github.com/Creanimo/social-media-image-creator/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Creanimo/social-media-image-creator.git"
+  },
+  "license": "MIT",
+  "author": "Ferdinand Engländer",
+  "type": "module",
+  "main": "index.html",
+  "scripts": {
+    "start": "http-server .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@awesome.me/webawesome-pro": "^3.2.1",
+    "@tabler/icons": "^3.36.1",
+    "immer": "^11.1.4",
+    "mustache": "^4.2.0"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}

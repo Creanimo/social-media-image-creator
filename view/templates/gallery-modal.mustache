@@ -1,0 +1,25 @@
+<wa-dialog id="gallery-modal" label="Choose Background Image" style="--width: 80vw;">
+    <div class="gallery-modal-content wa-stack">
+        <div class="wa-cluster" style="--max-column-size: 150px">
+            {{#images}}
+                <wa-card class="image-select-card" data-id="{{id}}" style="cursor: pointer;">
+                    <img slot="media" src="{{src}}" alt="Gallery Image" style="height: 100px; object-fit: cover;"/>
+                    <wa-button variant="primary" size="small" class="select-image-btn" data-id="{{id}}">Select
+                    </wa-button>
+                </wa-card>
+            {{/images}}
+            {{^images}}
+                <p>No images in library.</p>
+            {{/images}}
+        </div>
+        <wa-divider></wa-divider>
+        <div class="upload-section">
+            <wa-button id="modal-upload-trigger" variant="neutral">
+                <wa-icon name="upload" slot="prefix"></wa-icon>
+                Upload New
+            </wa-button>
+            <input type="file" id="modal-image-upload" accept="image/*" style="display: none;"/>
+        </div>
+    </div>
+    <wa-button slot="footer" variant="primary" id="close-gallery-modal">Close</wa-button>
+</wa-dialog>

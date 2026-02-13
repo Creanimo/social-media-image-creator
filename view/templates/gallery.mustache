@@ -1,0 +1,18 @@
+<div class="gallery wa-stack">
+    <div class="wa-cluster" style="--max-column-size: 200px">
+        {{#images}}
+        {{> image-card}}
+        {{/images}}
+        {{^images}}
+        <p>No images uploaded yet.</p>
+        {{/images}}
+    </div>
+
+    <div class="upload-section" style="">
+        <wa-button id="upload-trigger" variant="primary">
+            <wa-icon name="upload" slot="prefix"></wa-icon>
+            Upload New Image
+        </wa-button>
+        <input type="file" id="image-upload" accept="image/*" style="display: none;" />
+    </div>
+</div>

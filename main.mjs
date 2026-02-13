@@ -1,0 +1,75 @@
+import Mustache from 'mustache';
+import '/view/index.mjs';
+import { Dependencies } from './util/dependencies.mjs';
+import { IdGenerator } from './util/id-generator.mjs';
+import { Database } from './util/database.mjs';
+import { ImageUrlManager } from './util/image-url-manager.mjs';
+import { ImageRepository } from './repository/image-repository.mjs';
+import { CreationRepository } from './repository/creation-repository.mjs';
+import { GalleryController } from './controller/gallery-controller.mjs';
+import { CreationsController } from './controller/creations-controller.mjs';
+import { EditorController } from './controller/editor-controller.mjs';
+import { Router } from './router/router.mjs';
+
+async function init() {
+    // 1. Setup Dependencies
+    const db = new Database();
+    const deps = new Dependencies({
+        idGenerator: new IdGenerator(),
+        database: db,
+        imageRepository: new ImageRepository(db),
+        creationRepository: new CreationRepository(db),
+        imageUrlManager: new ImageUrlManager()
+    });
+
+    // 2. Render Base Frame
+    const response = await fetch('view/templates/frame.mustache');
+    const template = await response.text();
+
+    const frameData = {
+        'header': '<h1>Social Media Image Creator</h1>',
+        'main-navigation': `
+            <ul>
+                <li><a href="#gallery">Gallery</a></li>
+                <li><a href="#creations">My Creations</a></li>
+                <li><a href="#editor">Editor</a></li>
+            </ul>
+        `,
+        'sidebar': '<div id="sidebar-content">Settings</div>',
+        'content': '<div id="main-content">Loading...</div>'
+    };
+
+    const renderedFrame = Mustache.render(template, frameData);
+    document.getElementById('app').innerHTML = renderedFrame;
+
+    const mainContent = document.getElementById('main-content');
+    const sidebarContent = document.getElementById('sidebar-content');
+
+    // 3. Setup Router
+    const router = new Router();
+
+    router.addRoute('#gallery', async () => {
+        // Revoke all URLs when leaving a section to ensure memory is freed
+        deps.imageUrlManager.revokeAll();
+        sidebarContent.innerHTML = 'Gallery Info';
+        const controller = new GalleryController(deps, mainContent);
+        await controller.init();
+    });
+
+    router.addRoute('#creations', async () => {
+        deps.imageUrlManager.revokeAll();
+        sidebarContent.innerHTML = 'Creations Info';
+        const controller = new CreationsController(deps, mainContent);
+        await controller.init();
+    });
+
+    router.addRoute('#editor', async () => {
+        deps.imageUrlManager.revokeAll();
+        const controller = new EditorController(deps, mainContent, sidebarContent);
+        await controller.init();
+    });
+
+    router.start();
+}
+
+init().catch(console.error);

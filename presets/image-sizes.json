@@ -1,0 +1,14 @@
+{
+  "image-sizes": [
+    {
+      "name": "square",
+      "width": 1080,
+      "height": 1080
+    },
+    {
+      "name": "story",
+      "width": 1080,
+      "height": 1920
+    }
+  ]
+}
