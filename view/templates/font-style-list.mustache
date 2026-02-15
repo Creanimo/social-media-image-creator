@@ -1,0 +1,41 @@
+<div class="font-style-list">
+    <h2>Available Font Styles</h2>
+    <div class="styles-grid">
+        {{#styles}}
+        <wa-card class="style-card">
+            <div slot="header">
+                {{name}}
+            </div>
+            <div class="style-preview {{id}}">
+                {{example-text}}
+            </div>
+            <div slot="footer">
+                <small>{{instruction}}</small>
+            </div>
+        </wa-card>
+        {{/styles}}
+    </div>
+</div>
+
+<style>
+    .styles-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1rem;
+        padding: 1rem;
+    }
+    .style-card {
+        margin-bottom: 1rem;
+    }
+    .style-preview {
+        padding: 1rem;
+        border: 1px solid var(--wa-color-neutral-200);
+        border-radius: var(--wa-border-radius-medium);
+        background: white;
+        min-height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+</style>

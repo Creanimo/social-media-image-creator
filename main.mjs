@@ -9,6 +9,8 @@ import { CreationRepository } from './repository/creation-repository.mjs';
 import { GalleryController } from './controller/gallery-controller.mjs';
 import { CreationsController } from './controller/creations-controller.mjs';
 import { EditorController } from './controller/editor-controller.mjs';
+import { FontStyleController } from './controller/font-style-controller.mjs';
+import { FontStyleListController } from './controller/font-style-list-controller.mjs';
 import { Router } from './router/router.mjs';
 
 async function init() {
@@ -23,16 +25,30 @@ async function init() {
     });
 
     // 2. Render Base Frame
-    const response = await fetch('view/templates/frame.mustache');
-    const template = await response.text();
+    const fontStyleController = new FontStyleController();
+    await fontStyleController.init();
+
+    const [frameTemplateResponse, fontStylesLoaderResponse] = await Promise.all([
+        fetch('view/templates/frame.mustache'),
+        fetch('view/templates/font-styles-loader.mustache')
+    ]);
+
+    const template = await frameTemplateResponse.text();
+    const fontStylesLoaderTemplate = await fontStylesLoaderResponse.text();
+
+    const fontStylesHtml = Mustache.render(fontStylesLoaderTemplate, {
+        urls: fontStyleController.getUrls()
+    });
 
     const frameData = {
+        'font-styles': fontStylesHtml,
         'header': '<h1>Social Media Image Creator</h1>',
         'main-navigation': `
             <ul>
                 <li><a href="#gallery">Gallery</a></li>
                 <li><a href="#creations">My Creations</a></li>
                 <li><a href="#editor">Editor</a></li>
+                <li><a href="#font-styles">Font Styles</a></li>
             </ul>
         `,
         'sidebar': '<div id="sidebar-content">Settings</div>',
@@ -66,6 +82,13 @@ async function init() {
     router.addRoute('#editor', async () => {
         deps.imageUrlManager.revokeAll();
         const controller = new EditorController(deps, mainContent, sidebarContent);
+        await controller.init();
+    });
+
+    router.addRoute('#font-styles', async () => {
+        deps.imageUrlManager.revokeAll();
+        sidebarContent.innerHTML = 'Font Styles Info';
+        const controller = new FontStyleListController(fontStyleController, mainContent);
         await controller.init();
     });
 
