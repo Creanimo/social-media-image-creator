@@ -1,4 +1,4 @@
-import { immerable } from 'immer';
+import { immerable, produce } from 'immer';
 import { Dependencies } from '../util/dependencies.mjs';
 
 /**
@@ -32,7 +32,20 @@ export class Layer {
      */
     withVisible(visible) {
         if (this.visible === visible) return this;
-        const next = new Layer(this.id, this.name, visible);
-        return next;
+        return produce(this, draft => {
+            draft.visible = visible;
+        });
+    }
+
+    /**
+     * @param {boolean} visible
+     * @returns {Layer}
+     */
+    withName(name) {
+        if (this.name === name) return this;
+        return produce(this, draft => {
+            draft.name = name;
+        });
+
     }
 }

@@ -1,0 +1,16 @@
+{
+  "font-styles": [
+    {
+      "id":  "headline-largest-line-highlighted",
+      "name": "Headline Large with Line Highlight",
+      "example-text": "Super important claim here",
+      "instruction": "Use this for the short and sweet main message. 5 to 6 words maximum."
+    },
+    {
+      "id":  "headline-largest",
+      "name": "Headline Largest",
+      "example-text": "Super important claim here",
+      "instruction": "Use this for the short and sweet main message. 5 to 6 words maximum."
+    }
+  ]
+}
