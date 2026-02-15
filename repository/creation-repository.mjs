@@ -21,20 +21,19 @@ export class CreationRepository {
      */
     async save(creation) {
         const store = await this.#db.getStore('creations', 'readwrite');
+        
         // Convert to plain object for IndexedDB
-        // We need to handle the layers as well
-        const data = {
-            id: creation.id,
-            title: creation.title,
-            width: creation.width,
-            height: creation.height,
-            backgroundImageId: creation.backgroundImageId,
-            layers: creation.layers.map(layer => ({
+        const data = { ...creation };
+        
+        // Handle layers specifically if they exist
+        if (data.layers) {
+            data.layers = data.layers.map(layer => ({
                 id: layer.id,
                 name: layer.name,
                 visible: layer.visible
-            }))
-        };
+            }));
+        }
+        
         return new Promise((resolve, reject) => {
             const request = store.put(data);
             request.onsuccess = () => resolve();
@@ -56,16 +55,8 @@ export class CreationRepository {
                 const data = request.result;
                 if (!data) return resolve(null);
                 
-                const layers = data.layers.map(l => new Layer(l.id, l.name, l.visible, deps));
-                resolve(new Creation(
-                    data.id,
-                    data.title,
-                    data.width,
-                    data.height,
-                    data.backgroundImageId,
-                    layers,
-                    deps
-                ));
+                const { id, ...properties } = data;
+                resolve(new Creation(id, properties, deps));
             };
             request.onerror = () => reject(request.error);
         });
@@ -82,16 +73,8 @@ export class CreationRepository {
             const request = store.getAll();
             request.onsuccess = () => {
                 const results = request.result.map(data => {
-                    const layers = data.layers.map(l => new Layer(l.id, l.name, l.visible, deps));
-                    return new Creation(
-                        data.id,
-                        data.title,
-                        data.width,
-                        data.height,
-                        data.backgroundImageId,
-                        layers,
-                        deps
-                    );
+                    const { id, ...properties } = data;
+                    return new Creation(id, properties, deps);
                 });
                 resolve(results);
             };

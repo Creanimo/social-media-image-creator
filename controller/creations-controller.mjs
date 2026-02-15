@@ -25,13 +25,11 @@ export class CreationsController {
         const container = this.#view.container;
 
         container.querySelector('#create-new')?.addEventListener('click', async () => {
+            const response = await fetch('presets/template-creations/default.json');
+            const defaultData = await response.json();
             const newCreation = new Creation(
                 null,
-                "Untitled",
-                1080,
-                1080,
-                '',
-                [],
+                defaultData,
                 this.#deps
             );
             await this.#deps.creationRepository.save(newCreation);

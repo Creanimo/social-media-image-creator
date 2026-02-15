@@ -34,13 +34,11 @@ export class EditorController {
             this.#currentCreation = await this.#deps.creationRepository.get(id, this.#deps);
         } else {
             // Create a new blank creation if none is selected
+            const response = await fetch('presets/template-creations/default.json');
+            const defaultData = await response.json();
             this.#currentCreation = new Creation(
                 null,
-                "Untitled",
-                1080,
-                1080,
-                '',
-                [],
+                defaultData,
                 this.#deps
             );
             // Save it so it has an ID and we can add a background to it

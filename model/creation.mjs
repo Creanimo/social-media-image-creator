@@ -23,19 +23,23 @@ export class Creation {
 
     /**
      * @param {string|null} id
-     * @param {number} width
-     * @param {number} height
-     * @param {string} backgroundImageId
-     * @param {Layer[]} layers
+     * @param {Object} data
      * @param {Dependencies} [deps]
      */
-    constructor(id, title, width, height, backgroundImageId, layers = [], deps = null) {
+    constructor(id, data = {}, deps = null) {
         this.id = id || (deps?.idGenerator ? deps.idGenerator.generate() : null);
-        this.title = title || "Untitled";
-        this.width = width;
-        this.height = height;
-        this.backgroundImageId = backgroundImageId;
-        this.layers = [...layers];
+        
+        // Apply data properties
+        Object.assign(this, data);
+        
+        // Ensure layers is always an array of Layer objects
+        if (this.layers) {
+            this.layers = this.layers.map(layerData => 
+                layerData instanceof Layer ? layerData : new Layer(layerData.id, layerData.name, layerData.visible, deps)
+            );
+        } else {
+            this.layers = [];
+        }
     }
 
     /**
