@@ -27,11 +27,12 @@ export class CreationRepository {
         
         // Handle layers specifically if they exist
         if (data.layers) {
-            data.layers = data.layers.map(layer => ({
-                id: layer.id,
-                name: layer.name,
-                visible: layer.visible
-            }));
+            data.layers = data.layers.map(layer => {
+                const plainLayer = { ...layer };
+                // Ensure we don't store the immerable symbol or other non-plain data if any
+                delete plainLayer[Symbol.for('immerable')]; 
+                return plainLayer;
+            });
         }
         
         return new Promise((resolve, reject) => {

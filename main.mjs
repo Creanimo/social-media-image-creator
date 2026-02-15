@@ -3,6 +3,7 @@ import '/view/index.mjs';
 import { Dependencies } from './util/dependencies.mjs';
 import { IdGenerator } from './util/id-generator.mjs';
 import { Database } from './util/database.mjs';
+import { Preferences } from './util/preferences.mjs';
 import { ImageUrlManager } from './util/image-url-manager.mjs';
 import { ImageRepository } from './repository/image-repository.mjs';
 import { CreationRepository } from './repository/creation-repository.mjs';
@@ -21,7 +22,8 @@ async function init() {
         database: db,
         imageRepository: new ImageRepository(db),
         creationRepository: new CreationRepository(db),
-        imageUrlManager: new ImageUrlManager()
+        imageUrlManager: new ImageUrlManager(),
+        preferences: new Preferences()
     });
 
     // 2. Render Base Frame
@@ -80,6 +82,7 @@ async function init() {
     });
 
     router.addRoute('#editor', async () => {
+        console.log('[Main] Routing to #editor');
         deps.imageUrlManager.revokeAll();
         const controller = new EditorController(deps, mainContent, sidebarContent);
         await controller.init();

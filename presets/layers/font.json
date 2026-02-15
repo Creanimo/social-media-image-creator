@@ -1,0 +1,11 @@
+{
+  "type": "font",
+  "name": "New Font Layer",
+  "visible": true,
+  "slot": "center-middle",
+  "styleId": "headline-largest",
+  "text": "New Text",
+  "html": "New Text",
+  "offsetX": 0,
+  "offsetY": 0
+}

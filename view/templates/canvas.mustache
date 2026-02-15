@@ -1,17 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
+    {{#fontStyleUrls}}
+    <link rel="stylesheet" href="{{.}}">
+    {{/fontStyleUrls}}
     <style>
         * {
             box-sizing: border-box;
         }
         body {
             margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            padding: 40px;
+            display: grid;
+            place-items: center;
             min-height: 100vh;
+            min-width: 100vw;
             background: transparent;
         }
         #canvas {
@@ -19,8 +22,9 @@
             width: {{creation.width}}px;
             height: {{creation.height}}px;
             background-image: url({{{bgSrc}}});
-            background-size: cover;
-            background-position: center;
+            background-size: {{creation.backgroundScalePercent}}% auto;
+            background-position: calc(50% + {{creation.backgroundX}}px) calc(50% + {{creation.backgroundY}}px);
+            background-repeat: no-repeat;
             background-color: white;
             position: relative;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
@@ -34,63 +38,88 @@
             position: absolute;
             min-width: 25px;
             min-height: 25px;
-            background-color: rgba(0, 169, 212, 0.7);
+            background-color: rgba(0, 169, 212, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
         .canvas__slot--top-left {
             top: var(--canvas-padding-vertical);
             left: var(--canvas-padding-horizontal);
+            align-items: flex-start;
+            justify-content: flex-start;
         }
         .canvas__slot--top-middle {
             top: var(--canvas-padding-vertical);
             left: 50%;
             transform: translate(-50%, 0);
+            text-align: center;
         }
         .canvas__slot--top-right {
             top: var(--canvas-padding-vertical);
             right: var(--canvas-padding-horizontal);
+            align-items: flex-end;
+            justify-content: flex-start;
         }
         .canvas__slot--center-left {
             top: 50%;
             left: var(--canvas-padding-horizontal);
             transform: translate(0, -50%);
+            align-items: flex-start;
         }
         .canvas__slot--center-middle {
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            text-align: center;
         }
         .canvas__slot--center-right {
             top: 50%;
             right: var(--canvas-padding-horizontal);
             transform: translate(0, -50%);
+            align-items: flex-end;
         }
         .canvas__slot--bottom-left {
             bottom: var(--canvas-padding-vertical);
             left: var(--canvas-padding-horizontal);
+            align-items: flex-start;
+            justify-content: flex-end;
         }
         .canvas__slot--bottom-middle {
             bottom: var(--canvas-padding-vertical);
             left: 50%;
             transform: translate(-50%, 0);
+            justify-content: flex-end;
+            text-align: center;
         }
         .canvas__slot--bottom-right {
             bottom: var(--canvas-padding-vertical);
             right: var(--canvas-padding-horizontal);
+            align-items: flex-end;
+            justify-content: flex-end;
+        }
+
+        .font-layer {
         }
     </style>
+    <script src="/view/canvas-drag-scroll.js"></script>
+    <script src="/view/canvas-live-preview.js"></script>
 </head>
 <body>
     <div id="canvas" class="canvas">
-        <div class="canvas__slot canvas__slot--top-left"></div>
-        <div class="canvas__slot canvas__slot--top-middle"></div>
-        <div class="canvas__slot canvas__slot--top-right"></div>
-        <div class="canvas__slot canvas__slot--center-left"></div>
-        <div class="canvas__slot canvas__slot--center-middle"></div>
-        <div class="canvas__slot canvas__slot--center-right"></div>
-        <div class="canvas__slot canvas__slot--bottom-left"></div>
-        <div class="canvas__slot canvas__slot--bottom-middle"></div>
-        <div class="canvas__slot canvas__slot--bottom-right"></div>
-        <!-- Layers will be rendered here -->
+        {{#slots}}
+        <div class="canvas__slot canvas__slot--{{id}}">
+            {{#layers}}
+            {{#isFont}}
+            <div class="font-layer {{styleId}}" data-index="{{index}}"
+                 style="{{#size}}font-size: {{size}}px; {{/size}}transform: translate({{offsetX}}px, {{offsetY}}px); z-index: 10;">
+                {{{html}}}
+            </div>
+            {{/isFont}}
+            {{/layers}}
+        </div>
+        {{/slots}}
     </div>
 </body>
 </html>

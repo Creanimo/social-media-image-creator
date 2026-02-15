@@ -17,32 +17,90 @@
 
         <wa-divider></wa-divider>
 
-        <h3>Background</h3>
-        <div class="wa-stack">
-            <input type="hidden" name="backgroundImageId" value="{{backgroundImageId}}" />
-            {{#bgSrc}}
-            <img src="{{bgSrc}}" style="width: 100%; height: 150px; object-fit: cover; border: 1px solid #eee; margin-bottom: 10px;" />
-            {{/bgSrc}}
-            {{^bgSrc}}
-            <div style="width: 100%; height: 150px; background: #eee; display: flex; align-items: center; justify-content: center; margin-bottom: 10px;">
-                <wa-icon name="photo" style="font-size: 2rem; color: #999;"></wa-icon>
+        <wa-details summary="Background">
+            <div class="wa-stack">
+                <input type="hidden" name="backgroundImageId" value="{{backgroundImageId}}" />
+                {{#bgSrc}}
+                <img src="{{bgSrc}}" style="width: 100%; height: 150px; object-fit: cover; border: 1px solid #eee; margin-bottom: 10px;" />
+                {{/bgSrc}}
+                {{^bgSrc}}
+                <div style="width: 100%; height: 150px; background: #eee; display: flex; align-items: center; justify-content: center; margin-bottom: 10px;">
+                    <wa-icon name="photo" style="font-size: 2rem; color: #999;"></wa-icon>
+                </div>
+                {{/bgSrc}}
+                
+                <wa-button id="open-gallery-btn" variant="neutral">
+                    <wa-icon name="photo" slot="prefix"></wa-icon>
+                    Change from Gallery
+                </wa-button>
+                <wa-button id="upload-bg-btn" variant="neutral">
+                    <wa-icon name="upload" slot="prefix"></wa-icon>
+                    Upload New
+                </wa-button>
+                <input type="file" id="editor-bg-upload" accept="image/*" style="display: none;" />
+
+                <div class="wa-stack" style="gap: 5px;">
+                    <wa-slider id="slider-bg-scale" label="Scale" name="backgroundScale" value="{{backgroundScale}}" min="0.1" max="3" step="0.01" with-tooltip></wa-slider>
+                    <wa-slider id="slider-bg-x" label="Position X" name="backgroundX" value="{{backgroundX}}" min="-{{width}}" max="{{width}}" step="1" with-tooltip></wa-slider>
+                    <wa-slider id="slider-bg-y" label="Position Y" name="backgroundY" value="{{backgroundY}}" min="-{{height}}" max="{{height}}" step="1" with-tooltip></wa-slider>
+                </div>
             </div>
-            {{/bgSrc}}
-            
-            <wa-button id="open-gallery-btn" variant="neutral">
-                <wa-icon name="photo" slot="prefix"></wa-icon>
-                Change from Gallery
-            </wa-button>
-            <wa-button id="upload-bg-btn" variant="neutral">
-                <wa-icon name="upload" slot="prefix"></wa-icon>
-                Upload New
-            </wa-button>
-            <input type="file" id="editor-bg-upload" accept="image/*" style="display: none;" />
-        </div>
+        </wa-details>
 
         <wa-divider></wa-divider>
 
-        <!-- Layers will go here later -->
+        <h3>Layers</h3>
+        <div class="wa-stack" style="gap: 15px;">
+            {{#creation.layers}}
+            <wa-details summary="{{name}} ({{type}})" data-index="{{index}}" class="layer-item">
+                <div slot="summary-end">
+                    <wa-button variant="danger" size="small" class="remove-layer-btn" data-index="{{index}}" onclick="event.stopPropagation();">
+                        <wa-icon name="trash"></wa-icon>
+                    </wa-button>
+                </div>
+                
+                <div class="wa-stack" style="padding: 10px; border-top: 1px solid #ddd;">
+                    {{#isFont}}
+                    <div class="wa-stack" style="gap: 10px;">
+                        <wa-select name="layer-{{index}}-slot" label="Slot" value="{{slot}}" size="small">
+                            <wa-option value="top-left">Top Left</wa-option>
+                            <wa-option value="top-middle">Top Middle</wa-option>
+                            <wa-option value="top-right">Top Right</wa-option>
+                            <wa-option value="center-left">Center Left</wa-option>
+                            <wa-option value="center-middle">Center Middle</wa-option>
+                            <wa-option value="center-right">Center Right</wa-option>
+                            <wa-option value="bottom-left">Bottom Left</wa-option>
+                            <wa-option value="bottom-middle">Bottom Middle</wa-option>
+                            <wa-option value="bottom-right">Bottom Right</wa-option>
+                        </wa-select>
+
+                        <wa-select name="layer-{{index}}-styleId" label="Style" value="{{styleId}}" size="small">
+                            {{#fontStyles}}
+                            <wa-option value="{{id}}">{{name}}</wa-option>
+                            {{/fontStyles}}
+                        </wa-select>
+
+                        <wa-textarea name="layer-{{index}}-text" label="Text" value="{{text}}" resize="vertical" size="small"></wa-textarea>
+
+                        <wa-input type="number" name="layer-{{index}}-size" label="Size (px)" value="{{size}}" size="small"></wa-input>
+
+                        <wa-slider class="layer-slider" data-index="{{index}}" data-type="offsetX" label="Offset X" name="layer-{{index}}-offsetX" value="{{offsetX}}" min="-{{creation.width}}" max="{{creation.width}}" step="1" with-tooltip></wa-slider>
+                        <wa-slider class="layer-slider" data-index="{{index}}" data-type="offsetY" label="Offset Y" name="layer-{{index}}-offsetY" value="{{offsetY}}" min="-{{creation.height}}" max="{{creation.height}}" step="1" with-tooltip></wa-slider>
+                    </div>
+                    {{/isFont}}
+                </div>
+            </wa-details>
+            {{/creation.layers}}
+            
+            <div class="wa-cluster" style="gap: 10px;">
+                <wa-button id="add-font-layer-btn" variant="primary" style="flex: 1;">
+                    <wa-icon name="plus" slot="prefix"></wa-icon>
+                    Add Font Layer
+                </wa-button>
+            </div>
+        </div>
+
+        <wa-divider></wa-divider>
 
         <div class="wa-stack" style="margin-top: auto;">
             <wa-button id="back-to-creations" variant="neutral">

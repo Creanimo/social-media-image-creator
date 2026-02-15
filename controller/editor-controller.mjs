@@ -1,24 +1,31 @@
 import { EditorView } from '../view/editor-view.mjs';
 import { Image } from '../model/image.mjs';
 import { Creation } from '../model/creation.mjs';
+import { FontLayer } from '../model/font-layer.mjs';
+import { FontStyleController } from './font-style-controller.mjs';
 
 export class EditorController {
     #deps;
     #view;
     #currentCreation;
     #presets;
+    #fontStyleController;
 
     constructor(deps, container, sidebarContainer) {
         this.#deps = deps;
-        this.#view = new EditorView(container, sidebarContainer, deps.imageUrlManager);
+        this.#view = new EditorView(container, sidebarContainer, deps.imageUrlManager, deps.preferences);
         this.#currentCreation = null;
         this.#presets = [];
+        this.#fontStyleController = new FontStyleController();
     }
 
     async init() {
         // Load presets
-        const response = await fetch('presets/image-sizes.json');
-        const data = await response.json();
+        const [presetsRes, fontStylesRes] = await Promise.all([
+            fetch('presets/image-sizes.json'),
+            this.#fontStyleController.init()
+        ]);
+        const data = await presetsRes.json();
         this.#presets = data['image-sizes'];
 
         await this.#view.loadTemplates();
@@ -51,7 +58,7 @@ export class EditorController {
         await this.#updateView();
     }
 
-    async #updateView() {
+    async #updateView(fullRefresh = true) {
         let bgSrc = null;
         if (this.#currentCreation?.backgroundImageId) {
             const img = await this.#deps.imageRepository.get(this.#currentCreation.backgroundImageId, this.#deps);
@@ -62,12 +69,20 @@ export class EditorController {
 
         const galleryImages = await this.#deps.imageRepository.getAll(this.#deps);
         
-        this.#view.render(this.#currentCreation, {
+        const renderData = {
             presets: this.#presets,
             bgSrc,
-            galleryImages
-        });
-        this.#bindEvents();
+            galleryImages,
+            fontStyles: this.#fontStyleController.getStyles(),
+            fontStyleUrls: this.#fontStyleController.getUrls()
+        };
+
+        if (fullRefresh) {
+            this.#view.render(this.#currentCreation, renderData);
+            this.#bindEvents();
+        } else {
+            this.#view.renderCanvas(this.#currentCreation, renderData);
+        }
     }
 
     #bindEvents() {
@@ -75,9 +90,21 @@ export class EditorController {
         const sidebar = this.#view.sidebarContainer;
         const form = sidebar.querySelector('#editor-settings-form');
 
+        const getIframe = () => {
+            let iframe = container.querySelector('iframe');
+            if (!iframe) {
+                const zoomableFrame = container.querySelector('wa-zoomable-frame');
+                if (zoomableFrame && zoomableFrame.shadowRoot) {
+                    iframe = zoomableFrame.shadowRoot.querySelector('iframe');
+                }
+            }
+            return iframe;
+        };
+
         // Form submission / Auto-save
-        const submitForm = async () => {
+        const submitForm = async (options = {}) => {
             if (!form || !this.#currentCreation) {
+                console.warn('[EditorController] submitForm aborted: form or currentCreation missing');
                 return;
             }
 
@@ -86,12 +113,44 @@ export class EditorController {
             const widthInput = sidebar.querySelector('wa-input[name="width"]');
             const heightInput = sidebar.querySelector('wa-input[name="height"]');
             const bgIdInput = sidebar.querySelector('input[name="backgroundImageId"]');
+            const scaleSlider = sidebar.querySelector('wa-slider[name="backgroundScale"]');
+            const xSlider = sidebar.querySelector('wa-slider[name="backgroundX"]');
+            const ySlider = sidebar.querySelector('wa-slider[name="backgroundY"]');
 
             // Use .value which is the getter for WebAwesome components
             const titleValue = titleInput ? titleInput.value : '';
             const widthValue = widthInput ? widthInput.value : '';
             const heightValue = heightInput ? heightInput.value : '';
             const backgroundImageId = bgIdInput ? bgIdInput.value : '';
+            const backgroundScale = scaleSlider ? parseFloat(scaleSlider.value) : 1.0;
+            const backgroundX = xSlider ? parseInt(xSlider.value) : 0;
+            const backgroundY = ySlider ? parseInt(ySlider.value) : 0;
+
+            // Handle Layers
+            const updatedLayers = this.#currentCreation.layers.map((layer, index) => {
+                if (layer instanceof FontLayer) {
+                    const fontText = sidebar.querySelector(`wa-textarea[name="layer-${index}-text"]`)?.value || '';
+                    const html = fontText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/\n/g, '<br>');
+                    
+                    const slotValue = sidebar.querySelector(`wa-select[name="layer-${index}-slot"]`)?.value;
+                    const styleIdValue = sidebar.querySelector(`wa-select[name="layer-${index}-styleId"]`)?.value;
+                    const sizeInput = sidebar.querySelector(`wa-input[name="layer-${index}-size"]`);
+                    const sizeValue = sizeInput && sizeInput.value !== '' ? parseInt(sizeInput.value) : null;
+                    const offsetXValue = parseInt(sidebar.querySelector(`wa-slider[name="layer-${index}-offsetX"]`)?.value);
+                    const offsetYValue = parseInt(sidebar.querySelector(`wa-slider[name="layer-${index}-offsetY"]`)?.value);
+                    
+                    let updatedLayer = layer;
+                    if (slotValue !== undefined) updatedLayer = updatedLayer.withSlot(slotValue);
+                    if (styleIdValue !== undefined) updatedLayer = updatedLayer.withStyleId(styleIdValue);
+                    if (fontText !== undefined) updatedLayer = updatedLayer.withText(fontText).withHtml(html);
+                    if (sizeValue !== undefined) updatedLayer = updatedLayer.withSize(sizeValue);
+                    if (!isNaN(offsetXValue)) updatedLayer = updatedLayer.withOffsetX(offsetXValue);
+                    if (!isNaN(offsetYValue)) updatedLayer = updatedLayer.withOffsetY(offsetYValue);
+                    
+                    return updatedLayer;
+                }
+                return layer;
+            });
 
             const width = parseInt(widthValue);
             const height = parseInt(heightValue);
@@ -111,27 +170,157 @@ export class EditorController {
             if (backgroundImageId !== undefined) {
                 updatedCreation = updatedCreation.withBackgroundImageId(backgroundImageId);
             }
+            if (!isNaN(backgroundScale)) {
+                updatedCreation = updatedCreation.withBackgroundScale(backgroundScale);
+            }
+            if (!isNaN(backgroundX)) {
+                updatedCreation = updatedCreation.withBackgroundX(backgroundX);
+            }
+            if (!isNaN(backgroundY)) {
+                updatedCreation = updatedCreation.withBackgroundY(backgroundY);
+            }
+
+            // Update layers
+            updatedCreation = updatedCreation.withLayers(updatedLayers);
 
             if (updatedCreation !== this.#currentCreation) {
+                const structuralChange = updatedCreation.layers.length !== this.#currentCreation.layers.length;
                 this.#currentCreation = updatedCreation;
                 await this.#deps.creationRepository.save(this.#currentCreation);
-                await this.#updateView();
+                
+                // If this was a slider change, we don't want to re-render the canvas because it was already updated live
+                const skipRender = options.skipRender || false;
+                if (!skipRender) {
+                    await this.#updateView(structuralChange);
+                }
             }
         };
 
         // Listen for changes in the form
-        form?.querySelectorAll('wa-input, wa-select').forEach(el => {
+        const formElements = form?.querySelectorAll('wa-input, wa-select, wa-slider, wa-textarea') || [];
+        formElements.forEach(el => {
             // Use standard 'change' event as 'wa-change' is not emitted by the components
             el.addEventListener('change', () => {
-                submitForm();
+                const isSlider = el.tagName === 'WA-SLIDER';
+                submitForm({ skipRender: isSlider });
             });
 
-            if (el.tagName === 'WA-INPUT') {
+            // Use 'wa-input' event for sliders to have live preview during dragging
+            if (el.tagName === 'WA-SLIDER') {
+                const liveUpdateHandler = (e) => {
+                    const slider = e.target;
+                    const name = slider.name;
+                    const value = slider.value;
+
+                    // Send message to iframe for live preview
+                    const iframe = getIframe();
+                    if (iframe && iframe.contentWindow) {
+                        if (name === 'backgroundScale' || name === 'backgroundX' || name === 'backgroundY') {
+                            const scaleSlider = sidebar.querySelector('wa-slider[name="backgroundScale"]');
+                            const xSlider = sidebar.querySelector('wa-slider[name="backgroundX"]');
+                            const ySlider = sidebar.querySelector('wa-slider[name="backgroundY"]');
+                            
+                            const msg = {
+                                type: 'UPDATE_BACKGROUND',
+                                data: {
+                                    scale: parseFloat(scaleSlider?.value),
+                                    x: parseInt(xSlider?.value),
+                                    y: parseInt(ySlider?.value)
+                                }
+                            };
+                            iframe.contentWindow.postMessage(msg, '*');
+                        } else if (name.startsWith('layer-') && (name.endsWith('-offsetX') || name.endsWith('-offsetY'))) {
+                            const match = name.match(/layer-(\d+)-(offsetX|offsetY)/);
+                            if (match) {
+                                const index = parseInt(match[1]);
+                                const offsetXSlider = sidebar.querySelector(`wa-slider[name="layer-${index}-offsetX"]`);
+                                const offsetYSlider = sidebar.querySelector(`wa-slider[name="layer-${index}-offsetY"]`);
+                                
+                                const msg = {
+                                    type: 'UPDATE_LAYER',
+                                    data: {
+                                        index,
+                                        offsetX: parseInt(offsetXSlider?.value),
+                                        offsetY: parseInt(offsetYSlider?.value)
+                                    }
+                                };
+                                iframe.contentWindow.postMessage(msg, '*');
+                            }
+                        }
+                    }
+                };
+
+                el.addEventListener('wa-input', liveUpdateHandler);
+                el.addEventListener('input', liveUpdateHandler);
+            }
+
+            if (el.tagName === 'WA-INPUT' || el.tagName === 'WA-TEXTAREA') {
                 // Also trigger on blur for immediate feedback after typing
                 el.addEventListener('blur', () => {
-                    submitForm();
+                    const isSizeInput = el.name.includes('-size');
+                    submitForm({ skipRender: isSizeInput });
                 });
+                
+                // For regular inputs, wa-input is also useful for real-time (but maybe too many reloads)
+                // Let's stick to background and layer offsets for now as requested.
+                // But wait, the user also mentioned sizing.
+                if (el.tagName === 'WA-INPUT' && el.name.includes('-size')) {
+                     const liveSizeHandler = (e) => {
+                         const iframe = getIframe();
+                         if (iframe && iframe.contentWindow) {
+                             const match = el.name.match(/layer-(\d+)-size/);
+                             if (match) {
+                                 const index = parseInt(match[1]);
+                                 const msg = {
+                                     type: 'UPDATE_LAYER',
+                                     data: {
+                                         index,
+                                         size: el.value ? parseInt(el.value) : null
+                                     }
+                                 };
+                                 iframe.contentWindow.postMessage(msg, '*');
+                             }
+                         }
+                     };
+                     el.addEventListener('wa-input', liveSizeHandler);
+                     el.addEventListener('input', liveSizeHandler);
+                }
             }
+        });
+
+        // Setup slider value formatters
+        const percentFormatter = new Intl.NumberFormat('en-US', { style: 'percent' });
+
+        customElements.whenDefined('wa-slider').then(() => {
+            sidebar.querySelectorAll('wa-slider').forEach(slider => {
+                if (slider.id === 'slider-bg-scale') {
+                    slider.valueFormatter = value => percentFormatter.format(value);
+                } else {
+                    slider.valueFormatter = value => `${value}px`;
+                }
+            });
+        });
+
+        // Add Font Layer
+        sidebar.querySelector('#add-font-layer-btn')?.addEventListener('click', async () => {
+            const response = await fetch('presets/layers/font.json');
+            const data = await response.json();
+            const newLayer = new FontLayer(null, data, this.#deps);
+            this.#currentCreation = this.#currentCreation.addLayer(newLayer);
+            await this.#deps.creationRepository.save(this.#currentCreation);
+            await this.#updateView();
+        });
+
+        // Remove Layer
+        sidebar.querySelectorAll('.remove-layer-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const index = parseInt(btn.getAttribute('data-index'));
+                const newLayers = [...this.#currentCreation.layers];
+                newLayers.splice(index, 1);
+                this.#currentCreation = this.#currentCreation.withLayers(newLayers);
+                await this.#deps.creationRepository.save(this.#currentCreation);
+                await this.#updateView();
+            });
         });
 
         // Preset change - updates width/height inputs then submits
@@ -157,7 +346,8 @@ export class EditorController {
         });
 
         // Back
-        sidebar.querySelector('#back-to-creations')?.addEventListener('click', () => {
+        sidebar.querySelector('#back-to-creations')?.addEventListener('click', (e) => {
+            e.preventDefault();
             window.location.hash = '#creations';
         });
 

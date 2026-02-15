@@ -1,5 +1,6 @@
 import { produce, immerable } from 'immer';
 import { Layer } from './layer.mjs';
+import { FontLayer } from './font-layer.mjs';
 import { Dependencies } from '../util/dependencies.mjs';
 
 /**
@@ -18,6 +19,12 @@ export class Creation {
     height;
     /** @type {string} */
     backgroundImageId;
+    /** @type {number} */
+    backgroundScale;
+    /** @type {number} */
+    backgroundX;
+    /** @type {number} */
+    backgroundY;
     /** @type {ReadonlyArray<Layer>} */
     layers;
 
@@ -32,11 +39,15 @@ export class Creation {
         // Apply data properties
         Object.assign(this, data);
         
-        // Ensure layers is always an array of Layer objects
+        // Ensure layers is always an array of appropriate Layer objects
         if (this.layers) {
-            this.layers = this.layers.map(layerData => 
-                layerData instanceof Layer ? layerData : new Layer(layerData.id, layerData.name, layerData.visible, deps)
-            );
+            this.layers = this.layers.map(layerData => {
+                if (layerData instanceof Layer) return layerData;
+                if (layerData.type === 'font') {
+                    return new FontLayer(layerData.id, layerData, deps);
+                }
+                return new Layer(layerData.id, layerData.name, layerData.visible, deps);
+            });
         } else {
             this.layers = [];
         }
@@ -79,6 +90,36 @@ export class Creation {
     withBackgroundImageId(backgroundImageId) {
         return produce(this, draft => {
             draft.backgroundImageId = backgroundImageId;
+        });
+    }
+
+    /**
+     * @param {number} backgroundScale
+     * @returns {Creation}
+     */
+    withBackgroundScale(backgroundScale) {
+        return produce(this, draft => {
+            draft.backgroundScale = backgroundScale;
+        });
+    }
+
+    /**
+     * @param {number} backgroundX
+     * @returns {Creation}
+     */
+    withBackgroundX(backgroundX) {
+        return produce(this, draft => {
+            draft.backgroundX = backgroundX;
+        });
+    }
+
+    /**
+     * @param {number} backgroundY
+     * @returns {Creation}
+     */
+    withBackgroundY(backgroundY) {
+        return produce(this, draft => {
+            draft.backgroundY = backgroundY;
         });
     }
 

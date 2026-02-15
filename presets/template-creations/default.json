@@ -3,5 +3,20 @@
   "width": 1080,
   "height": 1080,
   "backgroundImageId": "",
-  "layers": []
+  "backgroundScale": 1.0,
+  "backgroundX": 0,
+  "backgroundY": 0,
+  "layers": [
+    {
+      "type": "font",
+      "name": "Headline",
+      "visible": true,
+      "slot": "center-middle",
+      "styleId": "headline-largest",
+      "text": "Your Text Here",
+      "html": "Your Text Here",
+      "offsetX": 0,
+      "offsetY": 0
+    }
+  ]
 }

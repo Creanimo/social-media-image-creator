@@ -12,6 +12,8 @@ export class Dependencies {
     creationRepository;
     /** @type {import('./image-url-manager.mjs').ImageUrlManager} */
     imageUrlManager;
+    /** @type {import('./preferences.mjs').Preferences} */
+    preferences;
 
     /**
      * @param {Object} deps
@@ -20,12 +22,14 @@ export class Dependencies {
      * @param {import('../repository/image-repository.mjs').ImageRepository} [deps.imageRepository]
      * @param {import('../repository/creation-repository.mjs').CreationRepository} [deps.creationRepository]
      * @param {import('./image-url-manager.mjs').ImageUrlManager} [deps.imageUrlManager]
+     * @param {import('./preferences.mjs').Preferences} [deps.preferences]
      */
-    constructor({ idGenerator, database, imageRepository, creationRepository, imageUrlManager } = {}) {
+    constructor({ idGenerator, database, imageRepository, creationRepository, imageUrlManager, preferences } = {}) {
         this.idGenerator = idGenerator;
         this.database = database;
         this.imageRepository = imageRepository;
         this.creationRepository = creationRepository;
         this.imageUrlManager = imageUrlManager;
+        this.preferences = preferences;
     }
 }
