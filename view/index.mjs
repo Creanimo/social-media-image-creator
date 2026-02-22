@@ -19,4 +19,5 @@ import '@awesome.me/webawesome-pro/dist/components/textarea/textarea.js';
 import '@awesome.me/webawesome-pro/dist/components/tab/tab.js';
 import '@awesome.me/webawesome-pro/dist/components/tab-group/tab-group.js';
 import '@awesome.me/webawesome-pro/dist/components/tab-panel/tab-panel.js';
+import '@awesome.me/webawesome-pro/dist/components/color-picker/color-picker.js';
 import '@awesome.me/webawesome-pro/dist/components/zoomable-frame/zoomable-frame.js';

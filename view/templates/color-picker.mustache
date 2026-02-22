@@ -1,0 +1,15 @@
+<div class="color-picker wa-stack" style="gap: 5px;">
+    {{#label}}
+    <wa-text size="small" style="font-weight: 600; margin-bottom: 2px; display: block;">{{label}}</wa-text>
+    {{/label}}
+    <div class="color-picker-host" data-name="{{name}}" data-value="{{value}}">
+        <wa-color-picker
+            label="Select a color"
+            size="small"
+            value="{{value}}"
+            {{#swatches}}swatches="{{swatches}}"{{/swatches}}
+            {{#noFullPicker}}no-full-picker{{/noFullPicker}}
+        ></wa-color-picker>
+        <input type="hidden" name="{{name}}" value="{{value}}">
+    </div>
+</div>

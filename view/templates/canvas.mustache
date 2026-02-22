@@ -5,7 +5,43 @@
     <link rel="stylesheet" href="{{.}}">
     {{/fontStyleUrls}}
     <link rel="stylesheet" href="/presets/styles/variables.css">
+    <script type="importmap">
+    {
+      "imports": {
+        "mustache": "/node_modules/mustache/mustache.mjs",
+        "immer": "/node_modules/immer/dist/immer.js",
+        "@awesome.me/webawesome-pro/": "/node_modules/@awesome.me/webawesome-pro/",
+        "@awesome.me/webawesome-pro": "/node_modules/@awesome.me/webawesome-pro/dist/webawesome.js",
+        "@awesome.me/webawesome-pro/dist/components/page/page.js": "/node_modules/@awesome.me/webawesome-pro/dist/components/page/page.js",
+        "lit": "/node_modules/lit/index.js",
+        "lit/": "/node_modules/lit/",
+        "lit-html": "/node_modules/lit-html/lit-html.js",
+        "lit-html/": "/node_modules/lit-html/",
+        "lit-element": "/node_modules/lit-element/index.js",
+        "lit-element/": "/node_modules/lit-element/",
+        "@lit/reactive-element": "/node_modules/@lit/reactive-element/reactive-element.js",
+        "@lit/reactive-element/": "/node_modules/@lit/reactive-element/",
+        "@floating-ui/dom": "/node_modules/@floating-ui/dom/dist/floating-ui.dom.mjs",
+        "@floating-ui/core": "/node_modules/@floating-ui/core/dist/floating-ui.core.mjs",
+        "@floating-ui/utils": "/node_modules/@floating-ui/utils/dist/floating-ui.utils.mjs",
+        "@floating-ui/utils/dom": "/node_modules/@floating-ui/utils/dist/floating-ui.utils.dom.mjs",
+        "@shoelace-style/localize": "/node_modules/@shoelace-style/localize/dist/index.js",
+        "@shoelace-style/animations": "/node_modules/@shoelace-style/animations/dist/index.js",
+        "@ctrl/tinycolor": "/node_modules/@ctrl/tinycolor/dist/module/public_api.js",
+        "composed-offset-position": "/node_modules/composed-offset-position/dist/composed-offset-position.mjs",
+        "nanoid": "/node_modules/nanoid/index.browser.js",
+        "iconify-picker": "/node_modules/iconify-picker/lib/iconify-picker.js"
+      }
+    }
+    </script>
+    <!-- Load webawesome components and icons inside the iframe -->
+    <script type="module" src="/view/index.mjs"></script>
     <style>
+        .icon-layer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
         * {
             box-sizing: border-box;
         }
@@ -20,6 +56,7 @@
             background: transparent;
         }
         #canvas {
+            overflow: hidden;
             border: 1px solid #ccc;
             width: {{creation.width}}px;
             height: {{creation.height}}px;
@@ -48,6 +85,7 @@
         .canvas__slot--top-left {
             top: var(--canvas-padding-vertical);
             left: var(--canvas-padding-horizontal);
+            right: var(--canvas-padding-horizontal);
             align-items: flex-start;
             justify-content: flex-start;
         }
@@ -60,6 +98,7 @@
         .canvas__slot--top-right {
             top: var(--canvas-padding-vertical);
             right: var(--canvas-padding-horizontal);
+            text-align: right;
             align-items: flex-end;
             justify-content: flex-start;
         }
@@ -79,6 +118,7 @@
             top: 50%;
             right: var(--canvas-padding-horizontal);
             transform: translate(0, -50%);
+            text-align: right;
             align-items: flex-end;
         }
         .canvas__slot--bottom-left {
@@ -98,6 +138,7 @@
             bottom: var(--canvas-padding-vertical);
             right: var(--canvas-padding-horizontal);
             align-items: flex-end;
+            text-align: right;
             justify-content: flex-end;
         }
 
@@ -114,10 +155,16 @@
             {{#layers}}
             {{#isFont}}
             <div class="font-layer {{styleId}}" data-index="{{index}}"
-                 style="{{#size}}font-size: {{size}}px; {{/size}}transform: translate({{offsetX}}px, {{offsetY}}px); z-index: 10;">
-                <span>{{{html}}}</span>
+                 style="transform: translate({{offsetX}}px, {{offsetY}}px); z-index: 10;">
+                <span style="{{#size}}font-size: {{size}}px; {{/size}}">{{{html}}}</span>
             </div>
             {{/isFont}}
+            {{#isIcon}}
+            <div class="icon-layer" data-index="{{index}}"
+                 style="transform: translate({{offsetX}}px, {{offsetY}}px); font-size: {{size}}px; color: {{color}}; z-index: 10; display: flex;">
+                <wa-icon name="{{icon}}" library="tabler"></wa-icon>
+            </div>
+            {{/isIcon}}
             {{/layers}}
         </div>
         {{/slots}}

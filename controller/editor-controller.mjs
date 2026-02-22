@@ -2,7 +2,12 @@ import { EditorView } from '../view/editor-view.mjs';
 import { Image } from '../model/image.mjs';
 import { Creation } from '../model/creation.mjs';
 import { FontLayer } from '../model/font-layer.mjs';
+import { IconLayer } from '../model/icon-layer.mjs';
 import { FontStyleController } from './font-style-controller.mjs';
+import { IconPickerController } from './icon-picker-controller.mjs';
+import { IconPickerView } from '../view/icon-picker-view.mjs';
+import { ColorPickerController } from './color-picker-controller.mjs';
+import { ColorPickerView } from '../view/color-picker-view.mjs';
 
 import { LivePreviewPipeline } from './live-preview-pipeline.mjs';
 
@@ -138,7 +143,13 @@ export class EditorController {
 
             // Handle Layers
             const updatedLayers = this.#currentCreation.layers.map((layer, index) => {
-                if (layer instanceof FontLayer) {
+                const nameValue = sidebar.querySelector(`wa-input[name="layer-${index}-name"]`)?.value;
+                let updatedLayer = layer;
+                if (nameValue !== undefined && nameValue !== layer.name) {
+                    updatedLayer = updatedLayer.withName(nameValue);
+                }
+
+                if (updatedLayer instanceof FontLayer) {
                     const fontText = sidebar.querySelector(`wa-textarea[name="layer-${index}-text"]`)?.value || '';
                     const html = fontText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/\n/g, '<br>');
                     
@@ -149,17 +160,37 @@ export class EditorController {
                     const offsetXValue = parseInt(sidebar.querySelector(`wa-slider[name="layer-${index}-offsetX"]`)?.value);
                     const offsetYValue = parseInt(sidebar.querySelector(`wa-slider[name="layer-${index}-offsetY"]`)?.value);
                     
-                    let updatedLayer = layer;
-                    if (slotValue !== undefined) updatedLayer = updatedLayer.withSlot(slotValue);
-                    if (styleIdValue !== undefined) updatedLayer = updatedLayer.withStyleId(styleIdValue);
-                    if (fontText !== undefined) updatedLayer = updatedLayer.withText(fontText).withHtml(html);
-                    if (sizeValue !== undefined) updatedLayer = updatedLayer.withSize(sizeValue);
-                    if (!isNaN(offsetXValue)) updatedLayer = updatedLayer.withOffsetX(offsetXValue);
-                    if (!isNaN(offsetYValue)) updatedLayer = updatedLayer.withOffsetY(offsetYValue);
+                    let updatedLayerFinal = updatedLayer;
+                    if (slotValue !== undefined) updatedLayerFinal = updatedLayerFinal.withSlot(slotValue);
+                    if (styleIdValue !== undefined) updatedLayerFinal = updatedLayerFinal.withStyleId(styleIdValue);
+                    if (fontText !== undefined) updatedLayerFinal = updatedLayerFinal.withText(fontText).withHtml(html);
+                    if (sizeValue !== undefined) updatedLayerFinal = updatedLayerFinal.withSize(sizeValue);
+                    if (!isNaN(offsetXValue)) updatedLayerFinal = updatedLayerFinal.withOffsetX(offsetXValue);
+                    if (!isNaN(offsetYValue)) updatedLayerFinal = updatedLayerFinal.withOffsetY(offsetYValue);
                     
-                    return updatedLayer;
+                    return updatedLayerFinal;
                 }
-                return layer;
+                
+                if (updatedLayer instanceof IconLayer) {
+                    const iconValue = sidebar.querySelector(`input[name="layer-${index}-icon"]`)?.value || 'photo';
+                    const colorValue = sidebar.querySelector(`input[name="layer-${index}-color"]`)?.value || '#000000';
+                    const slotValue = sidebar.querySelector(`wa-select[name="layer-${index}-slot"]`)?.value;
+                    const sizeInput = sidebar.querySelector(`wa-input[name="layer-${index}-size"]`);
+                    const sizeValue = sizeInput && sizeInput.value !== '' ? parseInt(sizeInput.value) : null;
+                    const offsetXValue = parseInt(sidebar.querySelector(`wa-slider[name="layer-${index}-offsetX"]`)?.value);
+                    const offsetYValue = parseInt(sidebar.querySelector(`wa-slider[name="layer-${index}-offsetY"]`)?.value);
+
+                    let updatedLayerFinal = updatedLayer;
+                    if (slotValue !== undefined) updatedLayerFinal = updatedLayerFinal.withSlot(slotValue);
+                    if (iconValue !== undefined) updatedLayerFinal = updatedLayerFinal.withIcon(iconValue);
+                    if (colorValue !== undefined) updatedLayerFinal = updatedLayerFinal.withColor(colorValue);
+                    if (sizeValue !== undefined) updatedLayerFinal = updatedLayerFinal.withSize(sizeValue);
+                    if (!isNaN(offsetXValue)) updatedLayerFinal = updatedLayerFinal.withOffsetX(offsetXValue);
+                    if (!isNaN(offsetYValue)) updatedLayerFinal = updatedLayerFinal.withOffsetY(offsetYValue);
+
+                    return updatedLayerFinal;
+                }
+                return updatedLayer;
             });
 
             const width = parseInt(widthValue);
@@ -215,14 +246,13 @@ export class EditorController {
                 submitForm({ skipRender: isSlider });
             });
 
-            // Use 'wa-input' event for sliders to have live preview during dragging
+            // Use 'input' event for sliders to have live preview during dragging
             if (el.tagName === 'WA-SLIDER') {
                 const liveUpdateHandler = (e) => {
                     const pipeline = new LivePreviewPipeline(getIframe(), sidebar);
                     pipeline.sendUpdate(e.target.name, e.target.value);
                 };
 
-                el.addEventListener('wa-input', liveUpdateHandler);
                 el.addEventListener('input', liveUpdateHandler);
             }
 
@@ -230,17 +260,51 @@ export class EditorController {
                 // Also trigger on blur for immediate feedback after typing
                 el.addEventListener('blur', () => {
                     const isSizeInput = el.name.includes('-size');
-                    submitForm({ skipRender: isSizeInput });
+                    const isNameInput = el.name.includes('-name');
+                    submitForm({ skipRender: isSizeInput || isNameInput });
                 });
                 
-                // For regular inputs, wa-input is also useful for real-time
+                // For regular inputs, input is also useful for real-time
                 if (el.tagName === 'WA-INPUT' && el.name.includes('-size')) {
                      const liveSizeHandler = (e) => {
                          const pipeline = new LivePreviewPipeline(getIframe(), sidebar);
                          pipeline.sendUpdate(e.target.name, e.target.value);
                      };
-                     el.addEventListener('wa-input', liveSizeHandler);
                      el.addEventListener('input', liveSizeHandler);
+                }
+            }
+        });
+
+        // Setup Icon Pickers
+        this.#currentCreation?.layers.forEach((layer, index) => {
+            if (layer instanceof IconLayer) {
+                const iconPickerContainer = sidebar.querySelector(`#icon-picker-container-${index}`);
+                if (iconPickerContainer) {
+                    const iconPickerView = new IconPickerView(iconPickerContainer);
+                    const iconPickerController = new IconPickerController(iconPickerView, `layer-${index}`, (newValue) => {
+                        submitForm();
+                    });
+                    iconPickerController.init({
+                        name: `layer-${index}-icon`,
+                        value: layer.icon,
+                        label: 'Icon'
+                    });
+                }
+
+                const colorPickerContainer = sidebar.querySelector(`#color-picker-container-${index}`);
+                if (colorPickerContainer) {
+                    const colorPickerView = new ColorPickerView(colorPickerContainer, this.#view.colorPickerTemplate);
+                    const colorPickerController = new ColorPickerController(colorPickerView, async (newValue, isLive = false) => {
+                        const pipeline = new LivePreviewPipeline(getIframe(), sidebar);
+                        pipeline.sendUpdate(`layer-${index}-color`, newValue);
+                        await submitForm({skipRender: true});
+                    });
+                    colorPickerController.init({
+                        name: `layer-${index}-color`,
+                        value: layer.color,
+                        label: 'Icon Color',
+                        noFullPicker: true
+                    });
                 }
             }
         });
@@ -258,15 +322,38 @@ export class EditorController {
             });
         });
 
-        // Add Font Layer
-        sidebar.querySelector('#add-font-layer-btn')?.addEventListener('click', async () => {
-            const response = await fetch('presets/layers/font.json');
-            const data = await response.json();
-            const newLayer = new FontLayer(null, data, this.#deps);
-            this.#currentCreation = this.#currentCreation.addLayer(newLayer);
-            await this.#deps.creationRepository.save(this.#currentCreation);
-            await this.#updateView();
+        // Add Layer Modal Open
+        sidebar.querySelector('#add-layer-btn')?.addEventListener('click', () => {
+            const modal = container.querySelector('#add-layer-modal');
+            modal?.show();
         });
+
+        // Add Layer from Modal
+        const addLayerModal = container.querySelector('#add-layer-modal');
+        addLayerModal?.querySelectorAll('.add-layer-type-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const type = btn.getAttribute('data-type');
+                if (type === 'font') {
+                    const response = await fetch('presets/layers/font.json');
+                    const data = await response.json();
+                    const newLayer = new FontLayer(null, data, this.#deps);
+                    this.#currentCreation = this.#currentCreation.addLayer(newLayer);
+                    await this.#deps.creationRepository.save(this.#currentCreation);
+                    addLayerModal.open = false;
+                    await this.#updateView();
+                } else if (type === 'icon') {
+                    const response = await fetch('presets/layers/icon.json');
+                    const data = await response.json();
+                    const newLayer = new IconLayer(null, data, this.#deps);
+                    this.#currentCreation = this.#currentCreation.addLayer(newLayer);
+                    await this.#deps.creationRepository.save(this.#currentCreation);
+                    addLayerModal.open = false;
+                    await this.#updateView();
+                }
+            });
+        });
+
+        addLayerModal?.querySelector('#close-add-layer-modal')?.addEventListener('click', () => addLayerModal.open = false);
 
         // Remove Layer
         sidebar.querySelectorAll('.remove-layer-btn').forEach(btn => {
@@ -331,6 +418,22 @@ export class EditorController {
                     submitForm();
                 }
             }
+        });
+
+        // Slider Reset Buttons
+        sidebar.querySelectorAll('.reset-slider-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetName = btn.getAttribute('data-target');
+                const defaultValue = btn.getAttribute('data-default');
+                const slider = sidebar.querySelector(`wa-slider[name="${targetName}"]`);
+                if (slider) {
+                    slider.value = defaultValue;
+                    // Trigger input event for live preview
+                    slider.dispatchEvent(new Event('input', { bubbles: true }));
+                    // Trigger change event for persistence
+                    slider.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            });
         });
 
         // Modal events

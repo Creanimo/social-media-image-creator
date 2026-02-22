@@ -1,0 +1,20 @@
+<div class="icon-picker-container wa-stack" style="gap: 10px;">
+    {{#label}}<wa-text size="small"><strong>{{label}}</strong></wa-text>{{/label}}
+    <div class="icon-picker-control" style="display: flex; gap: 10px; align-items: center;">
+        <wa-button id="icon-picker-trigger-{{id}}" variant="neutral" style="flex: 1;">
+            <wa-icon id="icon-picker-preview-{{id}}" name="{{value}}" library="tabler" slot="prefix"></wa-icon>
+            <span id="icon-picker-label-{{id}}">{{value}}</span>
+        </wa-button>
+        <wa-button id="icon-picker-clear-{{id}}" variant="neutral" circle size="small">
+            <wa-icon name="x" library="tabler"></wa-icon>
+        </wa-button>
+    </div>
+    <iconify-picker 
+        id="icon-picker-{{id}}" 
+        collection="tabler" 
+        mode="manual" 
+        hidden 
+        style="--picker-max-height: 300px; --picker-z-index: 1000;"
+    ></iconify-picker>
+    <input type="hidden" name="{{name}}" value="{{value}}" id="icon-picker-input-{{id}}">
+</div>

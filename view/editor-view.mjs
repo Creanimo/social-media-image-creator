@@ -5,7 +5,15 @@ export class EditorView {
     #sidebarContainer;
     #template;
     #sidebarTemplate;
+    #sidebarGeneralTemplate;
+    #sidebarBackgroundTemplate;
+    #sidebarLayersTemplate;
+    #layerFontTemplate;
+    #layerIconTemplate;
+    #iconPickerTemplate;
+    #colorPickerTemplate;
     #modalTemplate;
+    #addLayerModalTemplate;
     #canvasTemplate;
     #urlManager;
     #preferences;
@@ -16,21 +24,44 @@ export class EditorView {
         this.#template = null;
         this.#sidebarTemplate = null;
         this.#modalTemplate = null;
+        this.#addLayerModalTemplate = null;
         this.#canvasTemplate = null;
+        this.#sidebarGeneralTemplate = null;
+        this.#sidebarBackgroundTemplate = null;
+        this.#sidebarLayersTemplate = null;
+        this.#layerFontTemplate = null;
+        this.#layerIconTemplate = null;
+        this.#iconPickerTemplate = null;
         this.#urlManager = urlManager;
         this.#preferences = preferences;
     }
 
     async loadTemplates() {
-        const [editorRes, sidebarRes, modalRes, canvasRes] = await Promise.all([
+        const [editorRes, sidebarRes, sidebarGeneralRes, sidebarBackgroundRes, sidebarLayersRes, layerFontRes, layerIconRes, iconPickerRes, colorPickerRes, modalRes, addLayerModalRes, canvasRes] = await Promise.all([
             fetch('view/templates/editor.mustache'),
             fetch('view/templates/editor-sidebar.mustache'),
+            fetch('view/templates/editor-sidebar-general.mustache'),
+            fetch('view/templates/editor-sidebar-background.mustache'),
+            fetch('view/templates/editor-sidebar-layers.mustache'),
+            fetch('view/templates/editor-sidebar-layer-font.mustache'),
+            fetch('view/templates/editor-sidebar-layer-icon.mustache'),
+            fetch('view/templates/icon-picker.mustache'),
+            fetch('view/templates/color-picker.mustache'),
             fetch('view/templates/gallery-modal.mustache'),
+            fetch('view/templates/add-layer-modal.mustache'),
             fetch('view/templates/canvas.mustache')
         ]);
         this.#template = await editorRes.text();
         this.#sidebarTemplate = await sidebarRes.text();
+        this.#sidebarGeneralTemplate = await sidebarGeneralRes.text();
+        this.#sidebarBackgroundTemplate = await sidebarBackgroundRes.text();
+        this.#sidebarLayersTemplate = await sidebarLayersRes.text();
+        this.#layerFontTemplate = await layerFontRes.text();
+        this.#layerIconTemplate = await layerIconRes.text();
+        this.#iconPickerTemplate = await iconPickerRes.text();
+        this.#colorPickerTemplate = await colorPickerRes.text();
         this.#modalTemplate = await modalRes.text();
+        this.#addLayerModalTemplate = await addLayerModalRes.text();
         this.#canvasTemplate = await canvasRes.text();
     }
 
@@ -52,12 +83,23 @@ export class EditorView {
 
         this.renderCanvas(creation, { presets, bgSrc, fontStyles, fontStyleUrls });
 
-        const renderedSidebar = Mustache.render(this.#sidebarTemplate, viewData);
+        const partials = {
+            'editor-sidebar-general': this.#sidebarGeneralTemplate,
+            'editor-sidebar-background': this.#sidebarBackgroundTemplate,
+            'editor-sidebar-layers': this.#sidebarLayersTemplate,
+            'layer-font': this.#layerFontTemplate,
+            'layer-icon': this.#layerIconTemplate,
+            'icon-picker': this.#iconPickerTemplate,
+            'color-picker': this.#colorPickerTemplate
+        };
+
+        const renderedSidebar = Mustache.render(this.#sidebarTemplate, viewData, partials);
         this.#sidebarContainer.innerHTML = renderedSidebar;
 
         // Render modal if requested
         if (galleryImages.length >= 0) {
             this.renderGalleryModal(galleryImages, presetBackgrounds);
+            this.renderAddLayerModal();
         }
     }
 
@@ -107,7 +149,8 @@ export class EditorView {
         const layersWithMeta = creation ? creation.layers.map((layer, index) => ({
             ...layer,
             index,
-            isFont: layer.type === 'font'
+            isFont: layer.type === 'font',
+            isIcon: layer.type === 'icon'
         })) : [];
 
         const slots = slotIds.map(id => ({
@@ -149,7 +192,31 @@ export class EditorView {
             images: mappedImages,
             presetBackgrounds
         });
-        modalContainer.innerHTML = renderedModal;
+        
+        // Append instead of overwrite to support multiple modals
+        const div = document.createElement('div');
+        div.id = 'gallery-modal-wrapper';
+        div.innerHTML = renderedModal;
+        modalContainer.appendChild(div);
+    }
+
+    /**
+     * Renders the add layer modal.
+     */
+    renderAddLayerModal() {
+        const modalContainer = this.#container.querySelector('#modal-container');
+        if (!modalContainer) return;
+
+        const renderedModal = Mustache.render(this.#addLayerModalTemplate, {});
+        
+        const div = document.createElement('div');
+        div.id = 'add-layer-modal-wrapper';
+        div.innerHTML = renderedModal;
+        modalContainer.appendChild(div);
+    }
+
+    get colorPickerTemplate() {
+        return this.#colorPickerTemplate;
     }
 
     get container() {

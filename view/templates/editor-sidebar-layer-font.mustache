@@ -1,0 +1,36 @@
+<div class="wa-stack" style="gap: 10px;">
+    <wa-select name="layer-{{index}}-slot" label="Slot" value="{{slot}}" size="small">
+        <wa-option value="top-left">Top Left</wa-option>
+        <wa-option value="top-middle">Top Middle</wa-option>
+        <wa-option value="top-right">Top Right</wa-option>
+        <wa-option value="center-left">Center Left</wa-option>
+        <wa-option value="center-middle">Center Middle</wa-option>
+        <wa-option value="center-right">Center Right</wa-option>
+        <wa-option value="bottom-left">Bottom Left</wa-option>
+        <wa-option value="bottom-middle">Bottom Middle</wa-option>
+        <wa-option value="bottom-right">Bottom Right</wa-option>
+    </wa-select>
+
+    <wa-select name="layer-{{index}}-styleId" label="Style" value="{{styleId}}" size="small">
+        {{#fontStyles}}
+        <wa-option value="{{id}}">{{name}}</wa-option>
+        {{/fontStyles}}
+    </wa-select>
+
+    <wa-textarea name="layer-{{index}}-text" label="Text" value="{{text}}" resize="vertical" size="small"></wa-textarea>
+
+    <wa-input type="number" name="layer-{{index}}-size" label="Size (px)" value="{{size}}" size="small"></wa-input>
+
+    <div class="wa-flank:end">
+        <wa-slider class="layer-slider" data-index="{{index}}" data-type="offsetX" label="Offset X" name="layer-{{index}}-offsetX" value="{{offsetX}}" min="-{{creation.width}}" max="{{creation.width}}" step="1" with-tooltip style="flex: 1;"></wa-slider>
+        <wa-button variant="neutral" circle size="small" class="reset-slider-btn" data-target="layer-{{index}}-offsetX" data-default="0" style="margin-top: 25px;">
+            <wa-icon name="rotate-ccw" library="tabler"></wa-icon>
+        </wa-button>
+    </div>
+    <div class="wa-flank:end">
+        <wa-slider class="layer-slider" data-index="{{index}}" data-type="offsetY" label="Offset Y" name="layer-{{index}}-offsetY" value="{{offsetY}}" min="-{{creation.height}}" max="{{creation.height}}" step="1" with-tooltip style="flex: 1;"></wa-slider>
+        <wa-button variant="neutral" circle size="small" class="reset-slider-btn" data-target="layer-{{index}}-offsetY" data-default="0" style="margin-top: 25px;">
+            <wa-icon name="rotate-ccw" library="tabler"></wa-icon>
+        </wa-button>
+    </div>
+</div>

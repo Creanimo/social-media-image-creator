@@ -13,16 +13,19 @@ const LivePreviewReceiver = {
         }
     },
     UPDATE_LAYER: (data) => {
-        const { index, offsetX, offsetY, size } = data;
-        const layer = document.querySelector(`.font-layer[data-index="${index}"]`);
+        const { index, offsetX, offsetY, size, color } = data;
+        const layer = document.querySelector(`[data-index="${index}"]`);
         if (layer) {
             if (offsetX !== undefined || offsetY !== undefined) {
-                const ox = offsetX !== undefined ? offsetX : 0;
-                const oy = offsetY !== undefined ? offsetY : 0;
+                const ox = !isNaN(offsetX) ? offsetX : 0;
+                const oy = !isNaN(offsetY) ? offsetY : 0;
                 layer.style.transform = `translate(${ox}px, ${oy}px)`;
             }
             if (size !== undefined) {
                 layer.style.fontSize = size ? `${size}px` : '';
+            }
+            if (color !== undefined) {
+                layer.style.color = color;
             }
         }
     }

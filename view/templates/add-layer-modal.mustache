@@ -1,0 +1,40 @@
+<wa-dialog id="add-layer-modal" label="Add New Layer" style="--width: 400px;">
+    <div class="wa-stack" style="gap: 15px;">
+        <wa-card class="layer-type-card" data-type="font" style="cursor: pointer;">
+            <div class="wa-cluster" style="align-items: center; gap: 15px; padding: 15px;">
+                <wa-icon name="typography" library="tabler" style="font-size: 2rem; color: var(--wa-color-primary-600);"></wa-icon>
+                <div class="wa-stack" style="gap: 2px;">
+                    <wa-text size="large"><strong>Text Layer</strong></wa-text>
+                    <wa-text size="small" style="opacity: 0.7;">Add customizable text with different styles.</wa-text>
+                </div>
+            </div>
+            <wa-button slot="footer" variant="primary" class="add-layer-type-btn" data-type="font" style="width: 100%;">Add Text Layer</wa-button>
+        </wa-card>
+
+        <wa-card class="layer-type-card" data-type="icon" style="cursor: pointer;">
+            <div class="wa-cluster" style="align-items: center; gap: 15px; padding: 15px;">
+                <wa-icon name="photo" library="tabler" style="font-size: 2rem; color: var(--wa-color-primary-600);"></wa-icon>
+                <div class="wa-stack" style="gap: 2px;">
+                    <wa-text size="large"><strong>Icon Layer</strong></wa-text>
+                    <wa-text size="small" style="opacity: 0.7;">Add icons from the Tabler library.</wa-text>
+                </div>
+            </div>
+            <wa-button slot="footer" variant="primary" class="add-layer-type-btn" data-type="icon" style="width: 100%;">Add Icon Layer</wa-button>
+        </wa-card>
+
+        <!-- Placeholder for more layer types in the future -->
+        <!--
+        <wa-card class="layer-type-card" data-type="image" style="cursor: pointer; opacity: 0.5;">
+            <div class="wa-cluster" style="align-items: center; gap: 15px; padding: 15px;">
+                <wa-icon name="photo" library="tabler" style="font-size: 2rem;"></wa-icon>
+                <div class="wa-stack" style="gap: 2px;">
+                    <wa-text size="large"><strong>Image Layer</strong></wa-text>
+                    <wa-text size="small">Coming soon...</wa-text>
+                </div>
+            </div>
+            <wa-button slot="footer" variant="neutral" disabled style="width: 100%;">Add Image Layer</wa-button>
+        </wa-card>
+        -->
+    </div>
+    <wa-button slot="footer" variant="neutral" id="close-add-layer-modal">Cancel</wa-button>
+</wa-dialog>

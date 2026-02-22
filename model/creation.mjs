@@ -1,6 +1,7 @@
 import { produce, immerable } from 'immer';
 import { Layer } from './layer.mjs';
 import { FontLayer } from './font-layer.mjs';
+import { IconLayer } from './icon-layer.mjs';
 import { Dependencies } from '../util/dependencies.mjs';
 
 /**
@@ -45,6 +46,9 @@ export class Creation {
                 if (layerData instanceof Layer) return layerData;
                 if (layerData.type === 'font') {
                     return new FontLayer(layerData.id, layerData, deps);
+                }
+                if (layerData.type === 'icon') {
+                    return new IconLayer(layerData.id, layerData, deps);
                 }
                 return new Layer(layerData.id, layerData.name, layerData.visible, deps);
             });

@@ -25,18 +25,20 @@ export class LivePreviewPipeline {
                 y: parseInt(ySlider?.value)
             });
         } else if (name.startsWith('layer-')) {
-            const match = name.match(/layer-(\d+)-(offsetX|offsetY|size)/);
+            const match = name.match(/layer-(\d+)-(offsetX|offsetY|size|color)/);
             if (match) {
                 const index = parseInt(match[1]);
                 const offsetXSlider = this.#sidebar.querySelector(`wa-slider[name="layer-${index}-offsetX"]`);
                 const offsetYSlider = this.#sidebar.querySelector(`wa-slider[name="layer-${index}-offsetY"]`);
                 const sizeInput = this.#sidebar.querySelector(`wa-input[name="layer-${index}-size"]`);
+                const colorInput = this.#sidebar.querySelector(`input[name="layer-${index}-color"]`);
 
                 this.send('UPDATE_LAYER', {
                     index,
                     offsetX: parseInt(offsetXSlider?.value),
                     offsetY: parseInt(offsetYSlider?.value),
-                    size: sizeInput?.value ? parseInt(sizeInput.value) : null
+                    size: sizeInput?.value ? parseInt(sizeInput.value) : null,
+                    color: colorInput?.value
                 });
             }
         }

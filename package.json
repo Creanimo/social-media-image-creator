@@ -20,7 +20,9 @@
   },
   "dependencies": {
     "@awesome.me/webawesome-pro": "^3.2.1",
+    "@iconify-json/tabler": "^1.2.27",
     "@tabler/icons": "^3.36.1",
+    "iconify-picker": "^0.7.2",
     "immer": "^11.1.4",
     "mustache": "^4.2.0"
   },

@@ -1,0 +1,11 @@
+{
+  "type": "icon",
+  "name": "Icon Layer",
+  "visible": true,
+  "slot": "center-middle",
+  "icon": "photo",
+  "size": 128,
+  "offsetX": 0,
+  "offsetY": 0,
+  "color": "#502379"
+}
