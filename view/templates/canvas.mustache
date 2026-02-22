@@ -4,11 +4,13 @@
     {{#fontStyleUrls}}
     <link rel="stylesheet" href="{{.}}">
     {{/fontStyleUrls}}
+    <link rel="stylesheet" href="/presets/styles/variables.css">
     <style>
         * {
             box-sizing: border-box;
         }
         body {
+            font-family: var(--font-family);
             margin: 0;
             padding: 40px;
             display: grid;
@@ -38,7 +40,6 @@
             position: absolute;
             min-width: 25px;
             min-height: 25px;
-            background-color: rgba(0, 169, 212, 0.3);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -114,7 +115,7 @@
             {{#isFont}}
             <div class="font-layer {{styleId}}" data-index="{{index}}"
                  style="{{#size}}font-size: {{size}}px; {{/size}}transform: translate({{offsetX}}px, {{offsetY}}px); z-index: 10;">
-                {{{html}}}
+                <span>{{{html}}}</span>
             </div>
             {{/isFont}}
             {{/layers}}

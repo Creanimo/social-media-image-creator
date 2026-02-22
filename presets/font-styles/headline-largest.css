@@ -1,5 +1,4 @@
-.headline-largest {
-    font-size: 32px;
-    color: white;
-    background-color: black;
+.headline-largest span {
+    font-size: 96px;
+    color: var(--brand-color-bg);
 }

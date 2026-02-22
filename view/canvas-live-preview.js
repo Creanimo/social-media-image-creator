@@ -1,10 +1,5 @@
-window.addEventListener('message', (event) => {
-    // Check origin for security if necessary
-    // if (event.origin !== window.location.origin) return;
-
-    const { type, data } = event.data;
-
-    if (type === 'UPDATE_BACKGROUND') {
+const LivePreviewReceiver = {
+    UPDATE_BACKGROUND: (data) => {
         const canvas = document.getElementById('canvas');
         if (canvas) {
             if (data.scale !== undefined) {
@@ -16,9 +11,8 @@ window.addEventListener('message', (event) => {
                 canvas.style.backgroundPosition = `calc(50% + ${x}px) calc(50% + ${y}px)`;
             }
         }
-    }
-
-    if (type === 'UPDATE_LAYER') {
+    },
+    UPDATE_LAYER: (data) => {
         const { index, offsetX, offsetY, size } = data;
         const layer = document.querySelector(`.font-layer[data-index="${index}"]`);
         if (layer) {
@@ -31,5 +25,15 @@ window.addEventListener('message', (event) => {
                 layer.style.fontSize = size ? `${size}px` : '';
             }
         }
+    }
+};
+
+window.addEventListener('message', (event) => {
+    // Check origin for security if necessary
+    // if (event.origin !== window.location.origin) return;
+
+    const { type, data } = event.data;
+    if (LivePreviewReceiver[type]) {
+        LivePreviewReceiver[type](data);
     }
 });

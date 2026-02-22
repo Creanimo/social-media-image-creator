@@ -1,0 +1,12 @@
+:root {
+    --font-family: 'Ubuntu', sans-serif;
+    --brand-color-bg: #502379;
+    --brand-color-text: #ffffff;
+    --highlight-quiet-color-bg: var(--brand-color-bg);
+    --highlight-quiet-color-text: var(--brand-color-text);
+    --highlight-loud-color-bg: #E63E12;
+    --highlight-loud-color-text: var(--brand-color-text);
+    --color-01: #FDC220;
+    --color-02: #1BBE6F;
+    --color-03: #82D0F4;
+}

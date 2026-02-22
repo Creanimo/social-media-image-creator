@@ -4,6 +4,8 @@ import { Creation } from '../model/creation.mjs';
 import { FontLayer } from '../model/font-layer.mjs';
 import { FontStyleController } from './font-style-controller.mjs';
 
+import { LivePreviewPipeline } from './live-preview-pipeline.mjs';
+
 export class EditorController {
     #deps;
     #view;
@@ -208,46 +210,8 @@ export class EditorController {
             // Use 'wa-input' event for sliders to have live preview during dragging
             if (el.tagName === 'WA-SLIDER') {
                 const liveUpdateHandler = (e) => {
-                    const slider = e.target;
-                    const name = slider.name;
-                    const value = slider.value;
-
-                    // Send message to iframe for live preview
-                    const iframe = getIframe();
-                    if (iframe && iframe.contentWindow) {
-                        if (name === 'backgroundScale' || name === 'backgroundX' || name === 'backgroundY') {
-                            const scaleSlider = sidebar.querySelector('wa-slider[name="backgroundScale"]');
-                            const xSlider = sidebar.querySelector('wa-slider[name="backgroundX"]');
-                            const ySlider = sidebar.querySelector('wa-slider[name="backgroundY"]');
-                            
-                            const msg = {
-                                type: 'UPDATE_BACKGROUND',
-                                data: {
-                                    scale: parseFloat(scaleSlider?.value),
-                                    x: parseInt(xSlider?.value),
-                                    y: parseInt(ySlider?.value)
-                                }
-                            };
-                            iframe.contentWindow.postMessage(msg, '*');
-                        } else if (name.startsWith('layer-') && (name.endsWith('-offsetX') || name.endsWith('-offsetY'))) {
-                            const match = name.match(/layer-(\d+)-(offsetX|offsetY)/);
-                            if (match) {
-                                const index = parseInt(match[1]);
-                                const offsetXSlider = sidebar.querySelector(`wa-slider[name="layer-${index}-offsetX"]`);
-                                const offsetYSlider = sidebar.querySelector(`wa-slider[name="layer-${index}-offsetY"]`);
-                                
-                                const msg = {
-                                    type: 'UPDATE_LAYER',
-                                    data: {
-                                        index,
-                                        offsetX: parseInt(offsetXSlider?.value),
-                                        offsetY: parseInt(offsetYSlider?.value)
-                                    }
-                                };
-                                iframe.contentWindow.postMessage(msg, '*');
-                            }
-                        }
-                    }
+                    const pipeline = new LivePreviewPipeline(getIframe(), sidebar);
+                    pipeline.sendUpdate(e.target.name, e.target.value);
                 };
 
                 el.addEventListener('wa-input', liveUpdateHandler);
@@ -261,26 +225,11 @@ export class EditorController {
                     submitForm({ skipRender: isSizeInput });
                 });
                 
-                // For regular inputs, wa-input is also useful for real-time (but maybe too many reloads)
-                // Let's stick to background and layer offsets for now as requested.
-                // But wait, the user also mentioned sizing.
+                // For regular inputs, wa-input is also useful for real-time
                 if (el.tagName === 'WA-INPUT' && el.name.includes('-size')) {
                      const liveSizeHandler = (e) => {
-                         const iframe = getIframe();
-                         if (iframe && iframe.contentWindow) {
-                             const match = el.name.match(/layer-(\d+)-size/);
-                             if (match) {
-                                 const index = parseInt(match[1]);
-                                 const msg = {
-                                     type: 'UPDATE_LAYER',
-                                     data: {
-                                         index,
-                                         size: el.value ? parseInt(el.value) : null
-                                     }
-                                 };
-                                 iframe.contentWindow.postMessage(msg, '*');
-                             }
-                         }
+                         const pipeline = new LivePreviewPipeline(getIframe(), sidebar);
+                         pipeline.sendUpdate(e.target.name, e.target.value);
                      };
                      el.addEventListener('wa-input', liveSizeHandler);
                      el.addEventListener('input', liveSizeHandler);

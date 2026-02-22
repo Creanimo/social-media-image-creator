@@ -1,5 +1,9 @@
-.headline-largest-line-highlighted {
-    font-size: 32px;
-    color: white;
-    background-color: black;
+.headline-largest-line-highlighted span {
+    font-size: 96px;
+    color: var(--highlight-quiet-color-text);
+    background-color: var(--highlight-quiet-color-bg);
+    box-shadow: 10px 0 0 var(--highlight-quiet-color-bg), -10px 0 0 var(--highlight-quiet-color-bg);
+    padding: 7px;
+    line-height: 1.4;
+    box-decoration-break: clone;
 }

@@ -6,6 +6,11 @@
       "height": 1080
     },
     {
+      "name": "portrait",
+      "width": 1080,
+      "height": 1350
+    },
+    {
       "name": "story",
       "width": 1080,
       "height": 1920
