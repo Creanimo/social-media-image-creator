@@ -1,16 +1,40 @@
 <h3>Layers</h3>
 <div class="wa-stack" style="gap: 15px;">
-    {{#creation.layers}}
+    {{#filledSlots}}
+    <wa-text size="small" style="font-weight: bold; opacity: 0.7; padding-left: 5px;">Slot: {{id}}</wa-text>
+    {{#layers}}
     <wa-details class="layer-item" data-index="{{index}}">
         <div slot="summary" style="display: flex; align-items: center; gap: 10px; width: 100%;">
             <wa-input name="layer-{{index}}-name" value="{{name}}" size="small" style="flex: 1;" onclick="event.stopPropagation();" onkeydown="if (event.key === ' ') event.stopPropagation();"></wa-input>
             <wa-text size="x-small" style="opacity: 0.5; white-space: nowrap;">({{type}})</wa-text>
+            {{#hasMultipleInSlot}}
+            <div class="wa-cluster" style="gap: 5px;">
+                <wa-button circle size="small" class="move-layer-up-btn" data-index="{{index}}" {{^canMoveUp}}disabled{{/canMoveUp}} onclick="event.stopPropagation();" title="Move Up in Slot">
+                    <wa-icon name="arrow-up" library="tabler"></wa-icon>
+                </wa-button>
+                <wa-button circle size="small" class="move-layer-down-btn" data-index="{{index}}" {{^canMoveDown}}disabled{{/canMoveDown}} onclick="event.stopPropagation();" title="Move Down in Slot">
+                    <wa-icon name="arrow-down" library="tabler"></wa-icon>
+                </wa-button>
+            </div>
+            {{/hasMultipleInSlot}}
             <wa-button circle class="remove-layer-btn" data-index="{{index}}" style="color: red;" onclick="event.stopPropagation();">
                 <wa-icon name="trash" library="tabler"></wa-icon>
             </wa-button>
         </div>
         
         <div class="wa-stack" style="padding: 10px; border-top: 1px solid #ddd; gap: 15px;">
+            <div class="wa-cluster" style="gap: 10px; align-items: center;">
+                <wa-text size="small" style="opacity: 0.8;">Overlap:</wa-text>
+                <wa-button size="small" class="bring-to-front-btn" data-index="{{index}}" {{#isAtFront}}disabled{{/isAtFront}} onclick="event.stopPropagation();" title="Bring to Front">
+                    <wa-icon name="arrow-bar-to-up" library="tabler" slot="prefix"></wa-icon>
+                    Bring to Front
+                </wa-button>
+                <wa-button size="small" class="send-to-back-btn" data-index="{{index}}" {{#isAtBack}}disabled{{/isAtBack}} onclick="event.stopPropagation();" title="Send to Back">
+                    <wa-icon name="arrow-bar-to-down" library="tabler" slot="prefix"></wa-icon>
+                    Send to Back
+                </wa-button>
+            </div>
+
             {{#isFont}}
             {{> layer-font}}
             {{/isFont}}
@@ -19,7 +43,11 @@
             {{/isIcon}}
         </div>
     </wa-details>
-    {{/creation.layers}}
+    {{/layers}}
+    {{^isLast}}
+    <wa-divider style="margin: 5px 0;"></wa-divider>
+    {{/isLast}}
+    {{/filledSlots}}
     
     <div class="wa-cluster" style="gap: 10px;">
         <wa-button id="add-layer-btn" variant="primary" style="flex: 1;">

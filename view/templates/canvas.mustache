@@ -155,13 +155,13 @@
             {{#layers}}
             {{#isFont}}
             <div class="font-layer {{styleId}}" data-index="{{index}}"
-                 style="transform: translate({{offsetX}}px, {{offsetY}}px); z-index: 10;">
+                 style="transform: translate({{offsetX}}px, {{offsetY}}px); z-index: {{zIndex}};">
                 <span style="{{#size}}font-size: {{size}}px; {{/size}}">{{{html}}}</span>
             </div>
             {{/isFont}}
             {{#isIcon}}
             <div class="icon-layer" data-index="{{index}}"
-                 style="transform: translate({{offsetX}}px, {{offsetY}}px); font-size: {{size}}px; color: {{color}}; z-index: 10; display: flex;">
+                 style="transform: translate({{offsetX}}px, {{offsetY}}px); font-size: {{size}}px; color: {{color}}; z-index: {{zIndex}}; display: flex;">
                 <wa-icon name="{{icon}}" library="tabler"></wa-icon>
             </div>
             {{/isIcon}}

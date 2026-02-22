@@ -39,6 +39,50 @@ export class EditorController {
         await this.refresh();
     }
 
+    async #moveLayer(index, direction) {
+        const layers = [...this.#currentCreation.layers];
+        const layer = layers[index];
+        const slot = layer.slot;
+
+        // Find the index of the next/previous layer in the same slot
+        let targetSlotIndex = -1;
+        if (direction === -1) { // Up
+            for (let i = index - 1; i >= 0; i--) {
+                if (layers[i].slot === slot) {
+                    targetSlotIndex = i;
+                    break;
+                }
+            }
+        } else { // Down
+            for (let i = index + 1; i < layers.length; i++) {
+                if (layers[i].slot === slot) {
+                    targetSlotIndex = i;
+                    break;
+                }
+            }
+        }
+
+        if (targetSlotIndex !== -1) {
+            // Swap them
+            [layers[index], layers[targetSlotIndex]] = [layers[targetSlotIndex], layers[index]];
+            this.#currentCreation = this.#currentCreation.withLayers(layers);
+            await this.#deps.creationRepository.save(this.#currentCreation);
+            await this.#updateView();
+        }
+    }
+
+    async #bringToFront(index) {
+        this.#currentCreation = this.#currentCreation.bringToFront(index);
+        await this.#deps.creationRepository.save(this.#currentCreation);
+        await this.#updateView();
+    }
+
+    async #sendToBack(index) {
+        this.#currentCreation = this.#currentCreation.sendToBack(index);
+        await this.#deps.creationRepository.save(this.#currentCreation);
+        await this.#updateView();
+    }
+
     async refresh() {
         const hash = window.location.hash;
         const urlParams = new URLSearchParams(hash.includes('?') ? hash.split('?')[1] : '');
@@ -46,6 +90,13 @@ export class EditorController {
 
         if (id) {
             this.#currentCreation = await this.#deps.creationRepository.get(id, this.#deps);
+            if (this.#currentCreation) {
+                const repaired = this.#currentCreation.repairZIndex();
+                if (repaired !== this.#currentCreation) {
+                    this.#currentCreation = repaired;
+                    await this.#deps.creationRepository.save(this.#currentCreation);
+                }
+            }
         } else {
             // Create a new blank creation if none is selected
             const response = await fetch('presets/template-creations/default.json');
@@ -244,6 +295,9 @@ export class EditorController {
             el.addEventListener('change', () => {
                 const isSlider = el.tagName === 'WA-SLIDER';
                 submitForm({ skipRender: isSlider });
+                if (el.name.includes('-slot')) {
+                    this.refresh();
+                }
             });
 
             // Use 'input' event for sliders to have live preview during dragging
@@ -357,13 +411,50 @@ export class EditorController {
 
         // Remove Layer
         sidebar.querySelectorAll('.remove-layer-btn').forEach(btn => {
-            btn.addEventListener('click', async () => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
                 const index = parseInt(btn.getAttribute('data-index'));
                 const newLayers = [...this.#currentCreation.layers];
                 newLayers.splice(index, 1);
                 this.#currentCreation = this.#currentCreation.withLayers(newLayers);
                 await this.#deps.creationRepository.save(this.#currentCreation);
                 await this.#updateView();
+            });
+        });
+
+        // Move Layer Up
+        sidebar.querySelectorAll('.move-layer-up-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const index = parseInt(btn.getAttribute('data-index'));
+                await this.#moveLayer(index, -1);
+            });
+        });
+
+        // Move Layer Down
+        sidebar.querySelectorAll('.move-layer-down-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const index = parseInt(btn.getAttribute('data-index'));
+                await this.#moveLayer(index, 1);
+            });
+        });
+
+        // Bring to Front
+        sidebar.querySelectorAll('.bring-to-front-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const index = parseInt(btn.getAttribute('data-index'));
+                await this.#bringToFront(index);
+            });
+        });
+
+        // Send to Back
+        sidebar.querySelectorAll('.send-to-back-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const index = parseInt(btn.getAttribute('data-index'));
+                await this.#sendToBack(index);
             });
         });
 

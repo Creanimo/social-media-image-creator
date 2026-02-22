@@ -138,13 +138,74 @@ export class Creation {
     }
 
     /**
+     * @returns {Creation}
+     */
+    repairZIndex() {
+        const sortedLayers = [...this.layers]
+            .map((layer, originalIndex) => ({ layer, originalIndex }))
+            .sort((a, b) => {
+                const zDiff = (a.layer.zIndex || 0) - (b.layer.zIndex || 0);
+                if (zDiff !== 0) return zDiff;
+                return a.originalIndex - b.originalIndex;
+            });
+
+        let changed = false;
+        const newLayers = [...this.layers];
+        
+        sortedLayers.forEach((item, i) => {
+            const expectedZ = i + 1;
+            if (item.layer.zIndex !== expectedZ) {
+                changed = true;
+                newLayers[item.originalIndex] = item.layer.withZIndex(expectedZ);
+            }
+        });
+
+        if (changed) {
+            console.log(`Layer z-index repaired for creation ${this.id}`);
+            return this.withLayers(newLayers);
+        }
+        return this;
+    }
+
+    /**
+     * @param {number} layerIndex
+     * @returns {Creation}
+     */
+    bringToFront(layerIndex) {
+        const layer = this.layers[layerIndex];
+        if (!layer) return this;
+
+        const maxZ = this.layers.reduce((max, l) => Math.max(max, l.zIndex || 0), 0);
+        const newLayers = [...this.layers];
+        newLayers[layerIndex] = layer.withZIndex(maxZ + 1);
+        
+        return this.withLayers(newLayers).repairZIndex();
+    }
+
+    /**
+     * @param {number} layerIndex
+     * @returns {Creation}
+     */
+    sendToBack(layerIndex) {
+        const layer = this.layers[layerIndex];
+        if (!layer) return this;
+
+        const minZ = this.layers.reduce((min, l) => Math.min(min, l.zIndex || 0), Infinity);
+        const newLayers = [...this.layers];
+        newLayers[layerIndex] = layer.withZIndex(minZ - 1);
+        
+        return this.withLayers(newLayers).repairZIndex();
+    }
+
+    /**
      * Adds a layer to the canvas.
      * @param {Layer} layer
      * @returns {Creation}
      */
     addLayer(layer) {
         return produce(this, draft => {
-            draft.layers.push(layer);
+            const maxZ = draft.layers.reduce((max, l) => Math.max(max, l.zIndex || 0), 0);
+            draft.layers.push(layer.withZIndex(maxZ + 1));
         });
     }
 }

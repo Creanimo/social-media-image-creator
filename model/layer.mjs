@@ -13,17 +13,32 @@ export class Layer {
     name;
     /** @type {boolean} */
     visible;
+    /** @type {number} */
+    zIndex;
 
     /**
      * @param {string|null} id
      * @param {string} name
      * @param {boolean} [visible=true]
+     * @param {number} [zIndex=10]
      * @param {Dependencies} [deps]
      */
-    constructor(id, name, visible = true, deps = null) {
+    constructor(id, name, visible = true, zIndex = 10, deps = null) {
         this.id = id || (deps?.idGenerator ? deps.idGenerator.generate() : null);
         this.name = name;
         this.visible = visible;
+        this.zIndex = zIndex;
+    }
+
+    /**
+     * @param {number} zIndex
+     * @returns {Layer}
+     */
+    withZIndex(zIndex) {
+        if (this.zIndex === zIndex) return this;
+        return produce(this, draft => {
+            draft.zIndex = zIndex;
+        });
     }
 
     /**

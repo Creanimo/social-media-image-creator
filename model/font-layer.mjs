@@ -28,7 +28,7 @@ export class FontLayer extends Layer {
      * @param {Dependencies} [deps]
      */
     constructor(id, data = {}, deps = null) {
-        super(id, data.name || 'Text Layer', data.visible !== undefined ? data.visible : true, deps);
+        super(id, data.name || 'Text Layer', data.visible !== undefined ? data.visible : true, data.zIndex !== undefined ? data.zIndex : 10, deps);
         this.slot = data.slot || 'center-middle';
         this.styleId = data.styleId || '';
         this.text = data.text || '';

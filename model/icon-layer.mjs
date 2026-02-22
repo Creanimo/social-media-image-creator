@@ -26,7 +26,7 @@ export class IconLayer extends Layer {
      * @param {Dependencies} [deps]
      */
     constructor(id, data = {}, deps = null) {
-        super(id, data.name || 'Icon Layer', data.visible !== undefined ? data.visible : true, deps);
+        super(id, data.name || 'Icon Layer', data.visible !== undefined ? data.visible : true, data.zIndex !== undefined ? data.zIndex : 10, deps);
         this.slot = data.slot || 'center-middle';
         this.icon = (data.icon || 'photo').replace('tabler:', '');
         this.size = data.size !== undefined ? data.size : 48;

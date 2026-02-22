@@ -153,18 +153,41 @@ export class EditorView {
             isIcon: layer.type === 'icon'
         })) : [];
 
+        const layersWithMovement = layersWithMeta.map(layer => {
+            const slotLayers = layersWithMeta.filter(l => l.slot === layer.slot);
+            const indexInSlot = slotLayers.findIndex(l => l.index === layer.index);
+            const sortedLayers = [...layersWithMeta].sort((a, b) => a.zIndex - b.zIndex);
+            const maxZ = sortedLayers.length > 0 ? sortedLayers[sortedLayers.length - 1].zIndex : 0;
+            const minZ = sortedLayers.length > 0 ? sortedLayers[0].zIndex : 0;
+
+            return {
+                ...layer,
+                canMoveUp: indexInSlot > 0,
+                canMoveDown: indexInSlot < slotLayers.length - 1,
+                hasMultipleInSlot: slotLayers.length > 1,
+                isAtFront: layer.zIndex === maxZ && sortedLayers.length > 1,
+                isAtBack: layer.zIndex === minZ && sortedLayers.length > 1
+            };
+        });
+
         const slots = slotIds.map(id => ({
             id,
-            layers: layersWithMeta.filter(l => l.slot === id)
+            layers: layersWithMovement.filter(l => l.slot === id)
+        }));
+
+        const filledSlots = slots.filter(s => s.layers.length > 0).map((s, idx, arr) => ({
+            ...s,
+            isLast: idx === arr.length - 1
         }));
 
         return {
             creation: creation ? {
                 ...creation,
                 backgroundScalePercent: creation.backgroundScale * 100,
-                layers: layersWithMeta
+                layers: layersWithMovement
             } : null,
             slots,
+            filledSlots,
             presets,
             bgSrc: bgSrc || 'none',
             currentPresetName: presets.find(p => p.width === creation?.width && p.height === creation?.height)?.name,
