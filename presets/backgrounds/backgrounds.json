@@ -1,0 +1,10 @@
+{
+  "backgrounds": [
+    {
+      "id": "volt-spotlight",
+      "name": "Volt Spotlight",
+      "instruction": "Dramatic dark lighting with yellow highlights. Ideal for emphasizing a single central element.",
+      "filename": "volt-spotlight.png"
+    }
+  ]
+}

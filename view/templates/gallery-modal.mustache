@@ -1,25 +1,49 @@
 <wa-dialog id="gallery-modal" label="Choose Background Image" style="--width: 80vw;">
-    <div class="gallery-modal-content wa-stack">
-        <div class="wa-cluster" style="--max-column-size: 150px">
-            {{#images}}
-                <wa-card class="image-select-card" data-id="{{id}}" style="cursor: pointer;">
-                    <img slot="media" src="{{src}}" alt="Gallery Image" style="height: 100px; object-fit: cover;"/>
-                    <wa-button variant="primary" size="small" class="select-image-btn" data-id="{{id}}">Select
-                    </wa-button>
-                </wa-card>
-            {{/images}}
-            {{^images}}
-                <p>No images in library.</p>
-            {{/images}}
-        </div>
-        <wa-divider></wa-divider>
-        <div class="upload-section">
-            <wa-button id="modal-upload-trigger" variant="neutral">
-                <wa-icon name="upload" slot="prefix"></wa-icon>
-                Upload New
-            </wa-button>
-            <input type="file" id="modal-image-upload" accept="image/*" style="display: none;"/>
-        </div>
-    </div>
+    <wa-tab-group>
+        <wa-tab slot="nav" panel="gallery">My Gallery</wa-tab>
+        <wa-tab slot="nav" panel="presets">Presets</wa-tab>
+        <wa-tab slot="nav" panel="upload">Upload</wa-tab>
+
+        <wa-tab-panel name="gallery">
+            <div class="wa-cluster" style="--max-column-size: 150px; padding-top: 1rem;">
+                {{#images}}
+                    <wa-card class="image-select-card" data-id="{{id}}" style="cursor: pointer;">
+                        <img slot="media" src="{{src}}" alt="Gallery Image" style="height: 100px; object-fit: cover;"/>
+                        <wa-button variant="primary" size="small" class="select-image-btn" data-id="{{id}}">Select
+                        </wa-button>
+                    </wa-card>
+                {{/images}}
+                {{^images}}
+                    <wa-text>No images uploaded yet.</wa-text>
+                {{/images}}
+            </div>
+        </wa-tab-panel>
+
+        <wa-tab-panel name="presets">
+            <div class="wa-cluster" style="--max-column-size: 150px; padding-top: 1rem;">
+                {{#presetBackgrounds}}
+                    <wa-card class="image-select-card" data-id="{{id}}" style="cursor: pointer;">
+                        <img slot="media" src="{{src}}" alt="{{name}}" style="height: 100px; object-fit: cover;"/>
+                        <div style="padding: 0 10px 10px;">
+                            <wa-text size="small"><strong>{{name}}</strong></wa-text>
+                            <br/>
+                            <wa-text size="x-small" style="display: block; opacity: 0.7;">{{instruction}}</wa-text>
+                            <wa-button variant="primary" size="small" class="select-image-btn" data-id="{{id}}" style="margin-top: 10px; width: 100%;">Select</wa-button>
+                        </div>
+                    </wa-card>
+                {{/presetBackgrounds}}
+            </div>
+        </wa-tab-panel>
+
+        <wa-tab-panel name="upload">
+            <div class="upload-section" style="padding-top: 1rem;">
+                <wa-button id="modal-upload-trigger" variant="neutral">
+                    <wa-icon name="upload" slot="prefix"></wa-icon>
+                    Upload New
+                </wa-button>
+                <input type="file" id="modal-image-upload" accept="image/*" style="display: none;"/>
+            </div>
+        </wa-tab-panel>
+    </wa-tab-group>
     <wa-button slot="footer" variant="primary" id="close-gallery-modal">Close</wa-button>
 </wa-dialog>

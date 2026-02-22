@@ -40,11 +40,12 @@ export class EditorView {
      * @param {Array} data.presets
      * @param {string} data.bgSrc
      * @param {Array} data.galleryImages
+     * @param {Array} data.presetBackgrounds
      * @param {Array} data.fontStyles
      * @param {Array} data.fontStyleUrls
      */
-    render(creation, { presets = [], bgSrc = null, galleryImages = [], fontStyles = [], fontStyleUrls = [] } = {}) {
-        const viewData = this.#prepareViewData(creation, { presets, bgSrc, fontStyles, fontStyleUrls });
+    render(creation, { presets = [], bgSrc = null, galleryImages = [], presetBackgrounds = [], fontStyles = [], fontStyleUrls = [] } = {}) {
+        const viewData = this.#prepareViewData(creation, { presets, bgSrc, presetBackgrounds, fontStyles, fontStyleUrls });
 
         const renderedMain = Mustache.render(this.#template, viewData);
         this.#container.innerHTML = renderedMain;
@@ -56,7 +57,7 @@ export class EditorView {
 
         // Render modal if requested
         if (galleryImages.length >= 0) {
-            this.renderGalleryModal(galleryImages);
+            this.renderGalleryModal(galleryImages, presetBackgrounds);
         }
     }
 
@@ -96,7 +97,7 @@ export class EditorView {
         }
     }
 
-    #prepareViewData(creation, { presets = [], bgSrc = null, fontStyles = [], fontStyleUrls = [] } = {}) {
+    #prepareViewData(creation, { presets = [], bgSrc = null, presetBackgrounds = [], fontStyles = [], fontStyleUrls = [] } = {}) {
         const slotIds = [
             'top-left', 'top-middle', 'top-right',
             'center-left', 'center-middle', 'center-right',
@@ -124,6 +125,7 @@ export class EditorView {
             presets,
             bgSrc: bgSrc || 'none',
             currentPresetName: presets.find(p => p.width === creation?.width && p.height === creation?.height)?.name,
+            presetBackgrounds,
             fontStyles,
             fontStyleUrls
         };
@@ -131,8 +133,9 @@ export class EditorView {
 
     /**
      * @param {Array} images 
+     * @param {Array} presetBackgrounds
      */
-    renderGalleryModal(images) {
+    renderGalleryModal(images, presetBackgrounds = []) {
         const modalContainer = this.#container.querySelector('#modal-container');
         if (!modalContainer) return;
 
@@ -142,7 +145,10 @@ export class EditorView {
             src: this.#urlManager.getUrl(img.id, img.imageBlob)
         }));
 
-        const renderedModal = Mustache.render(this.#modalTemplate, { images: mappedImages });
+        const renderedModal = Mustache.render(this.#modalTemplate, { 
+            images: mappedImages,
+            presetBackgrounds
+        });
         modalContainer.innerHTML = renderedModal;
     }
 

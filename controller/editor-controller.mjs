@@ -63,18 +63,26 @@ export class EditorController {
     async #updateView(fullRefresh = true) {
         let bgSrc = null;
         if (this.#currentCreation?.backgroundImageId) {
-            const img = await this.#deps.imageRepository.get(this.#currentCreation.backgroundImageId, this.#deps);
+            let img = await this.#deps.imageRepository.get(this.#currentCreation.backgroundImageId, this.#deps);
+            if (!img) {
+                img = await this.#deps.backgroundRepository.get(this.#currentCreation.backgroundImageId);
+            }
             if (img) {
                 bgSrc = this.#deps.imageUrlManager.getUrl(img.id, img.imageBlob);
             }
         }
 
         const galleryImages = await this.#deps.imageRepository.getAll(this.#deps);
+        const presetBackgrounds = await this.#deps.backgroundRepository.getAll();
         
         const renderData = {
             presets: this.#presets,
             bgSrc,
             galleryImages,
+            presetBackgrounds: presetBackgrounds.map(bg => ({
+                ...bg,
+                src: this.#deps.imageUrlManager.getUrl(bg.id, bg.imageBlob)
+            })),
             fontStyles: this.#fontStyleController.getStyles(),
             fontStyleUrls: this.#fontStyleController.getUrls()
         };

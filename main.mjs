@@ -7,9 +7,11 @@ import { Preferences } from './util/preferences.mjs';
 import { ImageUrlManager } from './util/image-url-manager.mjs';
 import { ImageRepository } from './repository/image-repository.mjs';
 import { CreationRepository } from './repository/creation-repository.mjs';
+import { BackgroundRepository } from './repository/background-repository.mjs';
 import { GalleryController } from './controller/gallery-controller.mjs';
 import { CreationsController } from './controller/creations-controller.mjs';
 import { EditorController } from './controller/editor-controller.mjs';
+import { BackgroundIngestController } from './controller/background-ingest-controller.mjs';
 import { FontStyleController } from './controller/font-style-controller.mjs';
 import { FontStyleListController } from './controller/font-style-list-controller.mjs';
 import { Router } from './router/router.mjs';
@@ -22,13 +24,18 @@ async function init() {
         database: db,
         imageRepository: new ImageRepository(db),
         creationRepository: new CreationRepository(db),
+        backgroundRepository: new BackgroundRepository(db),
         imageUrlManager: new ImageUrlManager(),
         preferences: new Preferences()
     });
 
     // 2. Render Base Frame
+    const backgroundIngestController = new BackgroundIngestController(deps);
     const fontStyleController = new FontStyleController();
-    await fontStyleController.init();
+    await Promise.all([
+        backgroundIngestController.ingest(),
+        fontStyleController.init()
+    ]);
 
     const [frameTemplateResponse, fontStylesLoaderResponse] = await Promise.all([
         fetch('view/templates/frame.mustache'),
