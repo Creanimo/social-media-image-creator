@@ -1,17 +1,16 @@
 import { Creation } from '../model/creation.mjs';
 import { Layer } from '../model/layer.mjs';
+import { BaseRepository } from './base-repository.mjs';
 
 /**
  * Repository for managing Creation objects in IndexedDB.
  */
-export class CreationRepository {
-    #db;
-
+export class CreationRepository extends BaseRepository {
     /**
      * @param {Database} db
      */
     constructor(db) {
-        this.#db = db;
+        super(db, 'creations');
     }
 
     /**
@@ -20,8 +19,6 @@ export class CreationRepository {
      * @returns {Promise<void>}
      */
     async save(creation) {
-        const store = await this.#db.getStore('creations', 'readwrite');
-        
         // Convert to plain object for IndexedDB
         const data = { ...creation };
         
@@ -35,11 +32,7 @@ export class CreationRepository {
             });
         }
         
-        return new Promise((resolve, reject) => {
-            const request = store.put(data);
-            request.onsuccess = () => resolve();
-            request.onerror = () => reject(request.error);
-        });
+        return this._putRaw(data);
     }
 
     /**
@@ -49,18 +42,11 @@ export class CreationRepository {
      * @returns {Promise<Creation|null>}
      */
     async get(id, deps = null) {
-        const store = await this.#db.getStore('creations', 'readonly');
-        return new Promise((resolve, reject) => {
-            const request = store.get(id);
-            request.onsuccess = () => {
-                const data = request.result;
-                if (!data) return resolve(null);
-                
-                const { id, ...properties } = data;
-                resolve(new Creation(id, properties, deps));
-            };
-            request.onerror = () => reject(request.error);
-        });
+        const data = await this._getRaw(id);
+        if (!data) return null;
+        
+        const { id: creationId, ...properties } = data;
+        return new Creation(creationId, properties, deps);
     }
 
     /**
@@ -69,31 +55,10 @@ export class CreationRepository {
      * @returns {Promise<Creation[]>}
      */
     async getAll(deps = null) {
-        const store = await this.#db.getStore('creations', 'readonly');
-        return new Promise((resolve, reject) => {
-            const request = store.getAll();
-            request.onsuccess = () => {
-                const results = request.result.map(data => {
-                    const { id, ...properties } = data;
-                    return new Creation(id, properties, deps);
-                });
-                resolve(results);
-            };
-            request.onerror = () => reject(request.error);
-        });
-    }
-
-    /**
-     * Deletes a creation by ID.
-     * @param {string} id
-     * @returns {Promise<void>}
-     */
-    async delete(id) {
-        const store = await this.#db.getStore('creations', 'readwrite');
-        return new Promise((resolve, reject) => {
-            const request = store.delete(id);
-            request.onsuccess = () => resolve();
-            request.onerror = () => reject(request.error);
+        const rawResults = await this._getAllRaw();
+        return rawResults.map(data => {
+            const { id: creationId, ...properties } = data;
+            return new Creation(creationId, properties, deps);
         });
     }
 }

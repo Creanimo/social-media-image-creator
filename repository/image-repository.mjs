@@ -1,16 +1,15 @@
 import { Image } from '../model/image.mjs';
+import { BaseRepository } from './base-repository.mjs';
 
 /**
  * Repository for managing Image objects in IndexedDB.
  */
-export class ImageRepository {
-    #db;
-
+export class ImageRepository extends BaseRepository {
     /**
      * @param {Database} db
      */
     constructor(db) {
-        this.#db = db;
+        super(db, 'images');
     }
 
     /**
@@ -19,17 +18,12 @@ export class ImageRepository {
      * @returns {Promise<void>}
      */
     async save(image) {
-        const store = await this.#db.getStore('images', 'readwrite');
         // Convert to plain object for IndexedDB
         const data = {
             id: image.id,
             imageBlob: image.imageBlob
         };
-        return new Promise((resolve, reject) => {
-            const request = store.put(data);
-            request.onsuccess = () => resolve();
-            request.onerror = () => reject(request.error);
-        });
+        return this._putRaw(data);
     }
 
     /**
@@ -39,16 +33,9 @@ export class ImageRepository {
      * @returns {Promise<Image|null>}
      */
     async get(id, deps = null) {
-        const store = await this.#db.getStore('images', 'readonly');
-        return new Promise((resolve, reject) => {
-            const request = store.get(id);
-            request.onsuccess = () => {
-                const data = request.result;
-                if (!data) return resolve(null);
-                resolve(new Image(data.id, data.imageBlob, deps));
-            };
-            request.onerror = () => reject(request.error);
-        });
+        const data = await this._getRaw(id);
+        if (!data) return null;
+        return new Image(data.id, data.imageBlob, deps);
     }
 
     /**
@@ -57,28 +44,7 @@ export class ImageRepository {
      * @returns {Promise<Image[]>}
      */
     async getAll(deps = null) {
-        const store = await this.#db.getStore('images', 'readonly');
-        return new Promise((resolve, reject) => {
-            const request = store.getAll();
-            request.onsuccess = () => {
-                const results = request.result.map(data => new Image(data.id, data.imageBlob, deps));
-                resolve(results);
-            };
-            request.onerror = () => reject(request.error);
-        });
-    }
-
-    /**
-     * Deletes an image by ID.
-     * @param {string} id
-     * @returns {Promise<void>}
-     */
-    async delete(id) {
-        const store = await this.#db.getStore('images', 'readwrite');
-        return new Promise((resolve, reject) => {
-            const request = store.delete(id);
-            request.onsuccess = () => resolve();
-            request.onerror = () => reject(request.error);
-        });
+        const rawResults = await this._getAllRaw();
+        return rawResults.map(data => new Image(data.id, data.imageBlob, deps));
     }
 }
