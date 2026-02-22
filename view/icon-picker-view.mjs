@@ -22,7 +22,8 @@ export class IconPickerView {
             id: data.id || Math.random().toString(36).substring(2, 9),
             name: data.name,
             value: data.value || 'photo',
-            label: data.label
+            label: data.label,
+            color: data.color || '#000000'
         });
         
         if (this.#container) {

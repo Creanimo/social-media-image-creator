@@ -13,8 +13,9 @@
         id="icon-picker-{{id}}" 
         collection="tabler" 
         mode="manual" 
+        hide-collection
         hidden 
-        style="--picker-max-height: 300px; --picker-z-index: 1000;"
+        style="--picker-max-height: 300px; --picker-z-index: 1000; --picker-primary: var(--wa-color-primary-500); --picker-bg: var(--wa-color-neutral-0); --picker-text: var(--wa-color-neutral-900); --picker-border: var(--wa-color-neutral-200); --picker-hover: var(--wa-color-neutral-100); --picker-input-bg: var(--wa-color-neutral-50); --picker-icon-color: {{color}};"
     ></iconify-picker>
     <input type="hidden" name="{{name}}" value="{{value}}" id="icon-picker-input-{{id}}">
 </div>

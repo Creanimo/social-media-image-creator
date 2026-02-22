@@ -3,13 +3,16 @@ import { Image } from '../model/image.mjs';
 import { Creation } from '../model/creation.mjs';
 import { FontLayer } from '../model/font-layer.mjs';
 import { IconLayer } from '../model/icon-layer.mjs';
+import { IconCalloutLayer } from '../model/icon-callout-layer.mjs';
 import { FontStyleController } from './font-style-controller.mjs';
+import { CalloutStyleController } from './callout-style-controller.mjs';
 import { IconPickerController } from './icon-picker-controller.mjs';
 import { IconPickerView } from '../view/icon-picker-view.mjs';
 import { ColorPickerController } from './color-picker-controller.mjs';
 import { ColorPickerView } from '../view/color-picker-view.mjs';
 
 import { LivePreviewPipeline } from './live-preview-pipeline.mjs';
+import { ExportPipeline } from '../util/export-pipeline.mjs';
 
 export class EditorController {
     #deps;
@@ -17,6 +20,7 @@ export class EditorController {
     #currentCreation;
     #presets;
     #fontStyleController;
+    #calloutStyleController;
 
     constructor(deps, container, sidebarContainer) {
         this.#deps = deps;
@@ -24,13 +28,15 @@ export class EditorController {
         this.#currentCreation = null;
         this.#presets = [];
         this.#fontStyleController = new FontStyleController();
+        this.#calloutStyleController = new CalloutStyleController();
     }
 
     async init() {
         // Load presets
-        const [presetsRes, fontStylesRes] = await Promise.all([
+        const [presetsRes, fontStylesRes, calloutStylesRes] = await Promise.all([
             fetch('presets/image-sizes.json'),
-            this.#fontStyleController.init()
+            this.#fontStyleController.init(),
+            this.#calloutStyleController.init()
         ]);
         const data = await presetsRes.json();
         this.#presets = data['image-sizes'];
@@ -140,7 +146,9 @@ export class EditorController {
                 src: this.#deps.imageUrlManager.getUrl(bg.id, bg.imageBlob)
             })),
             fontStyles: this.#fontStyleController.getStyles(),
-            fontStyleUrls: this.#fontStyleController.getUrls()
+            fontStyleUrls: this.#fontStyleController.getUrls(),
+            calloutStyles: this.#calloutStyleController.getStyles(),
+            calloutStyleUrls: this.#calloutStyleController.getUrls()
         };
 
         if (fullRefresh) {
@@ -208,6 +216,8 @@ export class EditorController {
                     const styleIdValue = sidebar.querySelector(`wa-select[name="layer-${index}-styleId"]`)?.value;
                     const sizeInput = sidebar.querySelector(`wa-input[name="layer-${index}-size"]`);
                     const sizeValue = sizeInput && sizeInput.value !== '' ? parseInt(sizeInput.value) : null;
+                    const widthSlider = sidebar.querySelector(`wa-slider[name="layer-${index}-width"]`);
+                    const widthValue = widthSlider && widthSlider.value !== '' ? parseInt(widthSlider.value) : null;
                     const offsetXValue = parseInt(sidebar.querySelector(`wa-slider[name="layer-${index}-offsetX"]`)?.value);
                     const offsetYValue = parseInt(sidebar.querySelector(`wa-slider[name="layer-${index}-offsetY"]`)?.value);
                     
@@ -216,6 +226,7 @@ export class EditorController {
                     if (styleIdValue !== undefined) updatedLayerFinal = updatedLayerFinal.withStyleId(styleIdValue);
                     if (fontText !== undefined) updatedLayerFinal = updatedLayerFinal.withText(fontText).withHtml(html);
                     if (sizeValue !== undefined) updatedLayerFinal = updatedLayerFinal.withSize(sizeValue);
+                    if (widthValue !== undefined) updatedLayerFinal = updatedLayerFinal.withWidth(widthValue);
                     if (!isNaN(offsetXValue)) updatedLayerFinal = updatedLayerFinal.withOffsetX(offsetXValue);
                     if (!isNaN(offsetYValue)) updatedLayerFinal = updatedLayerFinal.withOffsetY(offsetYValue);
                     
@@ -236,6 +247,35 @@ export class EditorController {
                     if (iconValue !== undefined) updatedLayerFinal = updatedLayerFinal.withIcon(iconValue);
                     if (colorValue !== undefined) updatedLayerFinal = updatedLayerFinal.withColor(colorValue);
                     if (sizeValue !== undefined) updatedLayerFinal = updatedLayerFinal.withSize(sizeValue);
+                    if (!isNaN(offsetXValue)) updatedLayerFinal = updatedLayerFinal.withOffsetX(offsetXValue);
+                    if (!isNaN(offsetYValue)) updatedLayerFinal = updatedLayerFinal.withOffsetY(offsetYValue);
+
+                    return updatedLayerFinal;
+                }
+
+                if (updatedLayer instanceof IconCalloutLayer) {
+                    const fontText = sidebar.querySelector(`wa-textarea[name="layer-${index}-text"]`)?.value || '';
+                    const html = fontText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/\n/g, '<br>');
+
+                    const iconValue = sidebar.querySelector(`input[name="layer-${index}-icon"]`)?.value || 'info-circle';
+                    const colorValue = sidebar.querySelector(`input[name="layer-${index}-color"]`)?.value || '#000000';
+                    const slotValue = sidebar.querySelector(`wa-select[name="layer-${index}-slot"]`)?.value;
+                    const styleIdValue = sidebar.querySelector(`wa-select[name="layer-${index}-styleId"]`)?.value;
+                    const sizeInput = sidebar.querySelector(`wa-input[name="layer-${index}-size"]`);
+                    const sizeValue = sizeInput && sizeInput.value !== '' ? parseInt(sizeInput.value) : null;
+                    const widthSlider = sidebar.querySelector(`wa-slider[name="layer-${index}-width"]`);
+                    const widthValue = widthSlider && widthSlider.value !== '' ? parseInt(widthSlider.value) : null;
+                    const offsetXValue = parseInt(sidebar.querySelector(`wa-slider[name="layer-${index}-offsetX"]`)?.value);
+                    const offsetYValue = parseInt(sidebar.querySelector(`wa-slider[name="layer-${index}-offsetY"]`)?.value);
+
+                    let updatedLayerFinal = updatedLayer;
+                    if (slotValue !== undefined) updatedLayerFinal = updatedLayerFinal.withSlot(slotValue);
+                    if (styleIdValue !== undefined) updatedLayerFinal = updatedLayerFinal.withStyleId(styleIdValue);
+                    if (fontText !== undefined) updatedLayerFinal = updatedLayerFinal.withText(fontText).withHtml(html);
+                    if (iconValue !== undefined) updatedLayerFinal = updatedLayerFinal.withIcon(iconValue);
+                    if (colorValue !== undefined) updatedLayerFinal = updatedLayerFinal.withColor(colorValue);
+                    if (sizeValue !== undefined) updatedLayerFinal = updatedLayerFinal.withSize(sizeValue);
+                    if (widthValue !== undefined) updatedLayerFinal = updatedLayerFinal.withWidth(widthValue);
                     if (!isNaN(offsetXValue)) updatedLayerFinal = updatedLayerFinal.withOffsetX(offsetXValue);
                     if (!isNaN(offsetYValue)) updatedLayerFinal = updatedLayerFinal.withOffsetY(offsetYValue);
 
@@ -308,6 +348,9 @@ export class EditorController {
                 };
 
                 el.addEventListener('input', liveUpdateHandler);
+                
+                // For the width slider, we also want to trigger submitForm on change (end of drag)
+                // but submitForm with skipRender: true is already called for all sliders in the 'change' listener above.
             }
 
             if (el.tagName === 'WA-INPUT' || el.tagName === 'WA-TEXTAREA') {
@@ -331,7 +374,7 @@ export class EditorController {
 
         // Setup Icon Pickers
         this.#currentCreation?.layers.forEach((layer, index) => {
-            if (layer instanceof IconLayer) {
+            if (layer instanceof IconLayer || layer instanceof IconCalloutLayer) {
                 const iconPickerContainer = sidebar.querySelector(`#icon-picker-container-${index}`);
                 if (iconPickerContainer) {
                     const iconPickerView = new IconPickerView(iconPickerContainer);
@@ -341,7 +384,8 @@ export class EditorController {
                     iconPickerController.init({
                         name: `layer-${index}-icon`,
                         value: layer.icon,
-                        label: 'Icon'
+                        label: 'Icon',
+                        color: layer.color
                     });
                 }
 
@@ -356,7 +400,7 @@ export class EditorController {
                     colorPickerController.init({
                         name: `layer-${index}-color`,
                         value: layer.color,
-                        label: 'Icon Color',
+                        label: layer instanceof IconCalloutLayer ? 'Color' : 'Icon Color',
                         noFullPicker: true
                     });
                 }
@@ -374,6 +418,39 @@ export class EditorController {
                     slider.valueFormatter = value => `${value}px`;
                 }
             });
+        });
+
+        // Download PNG
+        container.querySelector('#download-png-btn')?.addEventListener('click', async () => {
+            const btn = container.querySelector('#download-png-btn');
+            btn.loading = true;
+            try {
+                const iframe = this.#view.getCanvasIframe();
+                if (!iframe || !iframe.contentDocument) {
+                    throw new Error('Canvas iframe not found or not ready');
+                }
+
+                const canvasEl = iframe.contentDocument.getElementById('canvas');
+                if (!canvasEl) {
+                    throw new Error('Canvas element not found in iframe');
+                }
+
+                const blob = await ExportPipeline.exportAsPng(canvasEl);
+
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${this.#currentCreation.title || 'creation'}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                console.error('Export failed:', error);
+                alert('Export failed. Please check the console for details.');
+            } finally {
+                btn.loading = false;
+            }
         });
 
         // Add Layer Modal Open
@@ -399,6 +476,14 @@ export class EditorController {
                     const response = await fetch('presets/layers/icon.json');
                     const data = await response.json();
                     const newLayer = new IconLayer(null, data, this.#deps);
+                    this.#currentCreation = this.#currentCreation.addLayer(newLayer);
+                    await this.#deps.creationRepository.save(this.#currentCreation);
+                    addLayerModal.open = false;
+                    await this.#updateView();
+                } else if (type === 'icon-callout') {
+                    const response = await fetch('presets/layers/icon-callout.json');
+                    const data = await response.json();
+                    const newLayer = new IconCalloutLayer(null, data, this.#deps);
                     this.#currentCreation = this.#currentCreation.addLayer(newLayer);
                     await this.#deps.creationRepository.save(this.#currentCreation);
                     addLayerModal.open = false;

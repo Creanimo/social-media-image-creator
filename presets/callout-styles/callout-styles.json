@@ -1,0 +1,12 @@
+{
+  "callout-styles": [
+    {
+      "id": "callout-simple",
+      "name": "Simple Callout"
+    },
+    {
+      "id": "callout-rounded-box",
+      "name": "Rounded Box"
+    }
+  ]
+}

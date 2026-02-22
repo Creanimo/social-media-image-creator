@@ -11,11 +11,9 @@
         <wa-option value="bottom-right">Bottom Right</wa-option>
     </wa-select>
 
-    <wa-select name="layer-{{index}}-styleId" label="Style" value="{{styleId}}" size="small">
-        {{#fontStyles}}
-        <wa-option value="{{id}}">{{name}}</wa-option>
-        {{/fontStyles}}
-    </wa-select>
+    <div id="icon-picker-container-{{index}}">
+        <!-- Icon Picker will be rendered here -->
+    </div>
 
     <wa-textarea name="layer-{{index}}-text" label="Text" value="{{text}}" resize="vertical" size="small"></wa-textarea>
 
@@ -26,6 +24,16 @@
         <wa-button variant="neutral" circle size="small" class="reset-slider-btn" data-target="layer-{{index}}-width" data-default="" style="margin-top: 25px;">
             <wa-icon name="rotate-ccw" library="tabler"></wa-icon>
         </wa-button>
+    </div>
+
+    <wa-select name="layer-{{index}}-styleId" label="Style" value="{{styleId}}" size="small">
+        {{#calloutStyles}}
+        <wa-option value="{{id}}">{{name}}</wa-option>
+        {{/calloutStyles}}
+    </wa-select>
+
+    <div id="color-picker-container-{{index}}">
+        {{> color-picker}}
     </div>
 
     <div class="wa-flank:end">

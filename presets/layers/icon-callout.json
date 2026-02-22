@@ -1,0 +1,12 @@
+{
+    "type": "icon-callout",
+    "name": "New Icon Callout",
+    "styleId": "callout-simple",
+    "icon": "info-circle",
+    "text": "Your text here",
+    "size": "",
+    "color": "#000000",
+    "slot": "center-middle",
+    "visible": true,
+    "zIndex": 10
+}

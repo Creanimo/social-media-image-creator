@@ -13,7 +13,7 @@ const LivePreviewReceiver = {
         }
     },
     UPDATE_LAYER: (data) => {
-        const { index, offsetX, offsetY, size, color } = data;
+        const { index, offsetX, offsetY, size, color, width } = data;
         const layer = document.querySelector(`[data-index="${index}"]`);
         if (layer) {
             if (offsetX !== undefined || offsetY !== undefined) {
@@ -23,9 +23,22 @@ const LivePreviewReceiver = {
             }
             if (size !== undefined) {
                 layer.style.fontSize = size ? `${size}px` : '';
+                // Also update wa-icon inside if it exists
+                const icon = layer.querySelector('wa-icon');
+                if (icon) {
+                    icon.style.fontSize = size ? `${size}px` : '';
+                }
             }
             if (color !== undefined) {
                 layer.style.color = color;
+                // Also update wa-icon inside if it exists
+                const icon = layer.querySelector('wa-icon');
+                if (icon) {
+                    icon.style.color = color;
+                }
+            }
+            if (width !== undefined) {
+                layer.style.width = width ? `${width}px` : '';
             }
         }
     }

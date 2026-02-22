@@ -1,9 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <link rel="stylesheet" href="/node_modules/@awesome.me/webawesome-pro/dist/styles/webawesome.css">
+    <link rel="stylesheet" href="/node_modules/@awesome.me/webawesome-pro/dist/styles/themes/default.css">
     {{#fontStyleUrls}}
     <link rel="stylesheet" href="{{.}}">
     {{/fontStyleUrls}}
+    {{#calloutStyleUrls}}
+    <link rel="stylesheet" href="{{.}}">
+    {{/calloutStyleUrls}}
     <link rel="stylesheet" href="/presets/styles/variables.css">
     <script type="importmap">
     {
@@ -30,7 +35,8 @@
         "@ctrl/tinycolor": "/node_modules/@ctrl/tinycolor/dist/module/public_api.js",
         "composed-offset-position": "/node_modules/composed-offset-position/dist/composed-offset-position.mjs",
         "nanoid": "/node_modules/nanoid/index.browser.js",
-        "iconify-picker": "/node_modules/iconify-picker/lib/iconify-picker.js"
+        "iconify-picker": "/node_modules/iconify-picker/lib/iconify-picker.js",
+        "snapdom": "/node_modules/@mindblowing/snapdom/dist/snapdom.mjs"
       }
     }
     </script>
@@ -85,7 +91,6 @@
         .canvas__slot--top-left {
             top: var(--canvas-padding-vertical);
             left: var(--canvas-padding-horizontal);
-            right: var(--canvas-padding-horizontal);
             align-items: flex-start;
             justify-content: flex-start;
         }
@@ -155,7 +160,7 @@
             {{#layers}}
             {{#isFont}}
             <div class="font-layer {{styleId}}" data-index="{{index}}"
-                 style="transform: translate({{offsetX}}px, {{offsetY}}px); z-index: {{zIndex}};">
+                 style="transform: translate({{offsetX}}px, {{offsetY}}px); z-index: {{zIndex}}; {{#width}}width: {{width}}px;{{/width}}">
                 <span style="{{#size}}font-size: {{size}}px; {{/size}}">{{{html}}}</span>
             </div>
             {{/isFont}}
@@ -165,6 +170,15 @@
                 <wa-icon name="{{icon}}" library="tabler"></wa-icon>
             </div>
             {{/isIcon}}
+            {{#isIconCallout}}
+            <div class="icon-callout-layer {{styleId}}" data-index="{{index}}"
+                 style="transform: translate({{offsetX}}px, {{offsetY}}px); z-index: {{zIndex}}; {{#width}}width: {{width}}px;{{/width}}">
+                <div class="wa-flank wa-align-items-start">
+                    <wa-icon class="icon-callout-layer__icon" slot="icon" name="{{icon}}" library="tabler" style="font-size: {{size}}px; color: {{color}};"></wa-icon>
+                    <div class="icon-callout-layer__text" style="{{#size}}font-size: {{size}}px; {{/size}} color: {{color}};">{{{html}}}</div>
+                </div>
+            </div>
+            {{/isIconCallout}}
             {{/layers}}
         </div>
         {{/slots}}

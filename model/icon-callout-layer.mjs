@@ -2,15 +2,17 @@ import { produce } from 'immer';
 import { Layer } from './layer.mjs';
 
 /**
- * Layer subtype for rendering text with specific styles and positioning.
+ * Layer subtype for rendering an icon with text using wa-flank.
  */
-export class FontLayer extends Layer {
+export class IconCalloutLayer extends Layer {
     /** @type {string} */
-    type = 'font';
+    type = 'icon-callout';
     /** @type {string} */
     slot;
     /** @type {string} */
     styleId;
+    /** @type {string} */
+    icon;
     /** @type {string} */
     text;
     /** @type {string} */
@@ -23,6 +25,8 @@ export class FontLayer extends Layer {
     offsetX;
     /** @type {number} */
     offsetY;
+    /** @type {string} */
+    color;
 
     /**
      * @param {string|null} id
@@ -30,15 +34,17 @@ export class FontLayer extends Layer {
      * @param {Dependencies} [deps]
      */
     constructor(id, data = {}, deps = null) {
-        super(id, data.name || 'Text Layer', data.visible !== undefined ? data.visible : true, data.zIndex !== undefined ? data.zIndex : 10, deps);
+        super(id, data.name || 'Icon Callout', data.visible !== undefined ? data.visible : true, data.zIndex !== undefined ? data.zIndex : 10, deps);
         this.slot = data.slot || 'center-middle';
         this.styleId = data.styleId || '';
+        this.icon = (data.icon || 'info-circle').replace('tabler:', '');
         this.text = data.text || '';
         this.html = data.html || '';
-        this.size = data.size !== undefined ? data.size : null;
+        this.size = data.size !== undefined ? data.size : 24;
         this.width = data.width !== undefined ? data.width : null;
         this.offsetX = data.offsetX || 0;
         this.offsetY = data.offsetY || 0;
+        this.color = data.color || '#000000';
     }
 
     withSlot(slot) {
@@ -47,6 +53,10 @@ export class FontLayer extends Layer {
 
     withStyleId(styleId) {
         return produce(this, draft => { draft.styleId = styleId; });
+    }
+
+    withIcon(icon) {
+        return produce(this, draft => { draft.icon = (icon || 'info-circle').replace('tabler:', ''); });
     }
 
     withText(text) {
@@ -71,5 +81,9 @@ export class FontLayer extends Layer {
 
     withOffsetY(offsetY) {
         return produce(this, draft => { draft.offsetY = offsetY; });
+    }
+
+    withColor(color) {
+        return produce(this, draft => { draft.color = color; });
     }
 }

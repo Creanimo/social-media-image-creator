@@ -1,0 +1,10 @@
+.icon-callout-layer.callout-simple {
+    width: 700px;
+    .icon-callout-layer__icon {
+        font-size: 80px;
+    }
+    .icon-callout-layer__text {
+        text-align: left;
+        font-size: 60px;
+    }
+}
