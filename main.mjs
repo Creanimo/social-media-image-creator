@@ -11,6 +11,7 @@ import { BackgroundRepository } from './repository/background-repository.mjs';
 import { GalleryController } from './controller/gallery-controller.mjs';
 import { CreationsController } from './controller/creations-controller.mjs';
 import { EditorController } from './controller/editor-controller.mjs';
+import { SettingsController } from './controller/settings-controller.mjs';
 import { BackgroundIngestController } from './controller/background-ingest-controller.mjs';
 import { FontStyleController } from './controller/font-style-controller.mjs';
 import { FontStyleListController } from './controller/font-style-list-controller.mjs';
@@ -58,6 +59,7 @@ async function init() {
                 <li><a href="#creations">My Creations</a></li>
                 <li><a href="#editor">Editor</a></li>
                 <li><a href="#font-styles">Font Styles</a></li>
+                <li><a href="#settings">Settings</a></li>
             </ul>
         `,
         'sidebar': '<div id="sidebar-content">Settings</div>',
@@ -99,6 +101,13 @@ async function init() {
         deps.imageUrlManager.revokeAll();
         sidebarContent.innerHTML = 'Font Styles Info';
         const controller = new FontStyleListController(fontStyleController, mainContent);
+        await controller.init();
+    });
+
+    router.addRoute('#settings', async () => {
+        deps.imageUrlManager.revokeAll();
+        sidebarContent.innerHTML = 'Settings Info';
+        const controller = new SettingsController(deps, mainContent);
         await controller.init();
     });
 

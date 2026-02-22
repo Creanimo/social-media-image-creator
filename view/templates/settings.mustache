@@ -1,0 +1,38 @@
+<wa-page>
+    <header slot="header">
+        <wa-text size="large"><strong>Application Settings</strong></wa-text>
+    </header>
+
+    <div style="padding: 1rem; display: flex; flex-direction: column; gap: 2rem;">
+        <wa-card>
+            <div slot="header">
+                <strong>Database Management</strong>
+            </div>
+            <wa-text>
+                Delete all data stored in the local IndexedDB. This includes your creations, uploaded images, and cached background presets.
+                The application will automatically recreate the database structure on next use.
+            </wa-text>
+            <div slot="footer">
+                <wa-button id="delete-all-btn" variant="danger">
+                    <wa-icon name="trash" slot="prefix"></wa-icon>
+                    Delete All Repositories
+                </wa-button>
+            </div>
+        </wa-card>
+
+        <wa-card>
+            <div slot="header">
+                <strong>Background Presets</strong>
+            </div>
+            <wa-text>
+                Clear the background preset repository and re-ingest them from the server. Use this if you want to update the backgrounds to the most recent state.
+            </wa-text>
+            <div slot="footer">
+                <wa-button id="rebuild-backgrounds-btn" variant="warning">
+                    <wa-icon name="refresh" slot="prefix"></wa-icon>
+                    Rebuild Background Repository
+                </wa-button>
+            </div>
+        </wa-card>
+    </div>
+</wa-page>
