@@ -5,6 +5,7 @@ import '@awesome.me/webawesome-pro/dist/components/page/page.js';
 import '@awesome.me/webawesome-pro/dist/components/button/button.js';
 import '@awesome.me/webawesome-pro/dist/components/card/card.js';
 import '@awesome.me/webawesome-pro/dist/components/icon/icon.js';
+import '@awesome.me/webawesome-pro/dist/components/combobox/combobox.js';
 import '@awesome.me/webawesome-pro/dist/components/details/details.js';
 import '@awesome.me/webawesome-pro/dist/components/dialog/dialog.js';
 import '@awesome.me/webawesome-pro/dist/components/dropdown/dropdown.js';

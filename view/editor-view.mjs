@@ -11,6 +11,8 @@ export class EditorView {
     #layerFontTemplate;
     #layerIconTemplate;
     #layerIconCalloutTemplate;
+    #layerImageTemplate;
+    #imageCardTemplate;
     #iconPickerTemplate;
     #colorPickerTemplate;
     #modalTemplate;
@@ -33,13 +35,15 @@ export class EditorView {
         this.#layerFontTemplate = null;
         this.#layerIconTemplate = null;
         this.#layerIconCalloutTemplate = null;
+        this.#layerImageTemplate = null;
+        this.#imageCardTemplate = null;
         this.#iconPickerTemplate = null;
         this.#urlManager = urlManager;
         this.#preferences = preferences;
     }
 
     async loadTemplates() {
-        const [editorRes, sidebarRes, sidebarGeneralRes, sidebarBackgroundRes, sidebarLayersRes, layerFontRes, layerIconRes, layerIconCalloutRes, iconPickerRes, colorPickerRes, modalRes, addLayerModalRes, canvasRes] = await Promise.all([
+        const [editorRes, sidebarRes, sidebarGeneralRes, sidebarBackgroundRes, sidebarLayersRes, layerFontRes, layerIconRes, layerIconCalloutRes, layerImageRes, imageCardRes, iconPickerRes, colorPickerRes, modalRes, addLayerModalRes, canvasRes] = await Promise.all([
             fetch('view/templates/editor.mustache'),
             fetch('view/templates/editor-sidebar.mustache'),
             fetch('view/templates/editor-sidebar-general.mustache'),
@@ -48,6 +52,8 @@ export class EditorView {
             fetch('view/templates/editor-sidebar-layer-font.mustache'),
             fetch('view/templates/editor-sidebar-layer-icon.mustache'),
             fetch('view/templates/editor-sidebar-layer-icon-callout.mustache'),
+            fetch('view/templates/editor-sidebar-layer-image.mustache'),
+            fetch('view/templates/image-card.mustache'),
             fetch('view/templates/icon-picker.mustache'),
             fetch('view/templates/color-picker.mustache'),
             fetch('view/templates/gallery-modal.mustache'),
@@ -62,6 +68,8 @@ export class EditorView {
         this.#layerFontTemplate = await layerFontRes.text();
         this.#layerIconTemplate = await layerIconRes.text();
         this.#layerIconCalloutTemplate = await layerIconCalloutRes.text();
+        this.#layerImageTemplate = await layerImageRes.text();
+        this.#imageCardTemplate = await imageCardRes.text();
         this.#iconPickerTemplate = await iconPickerRes.text();
         this.#colorPickerTemplate = await colorPickerRes.text();
         this.#modalTemplate = await modalRes.text();
@@ -74,20 +82,20 @@ export class EditorView {
      * @param {Object} data 
      * @param {Array} data.presets
      * @param {string} data.bgSrc
-     * @param {Array} data.galleryImages
+     * @param {Array} data.uploadedImages
      * @param {Array} data.presetBackgrounds
      * @param {Array} data.fontStyles
      * @param {Array} data.fontStyleUrls
      * @param {Array} data.calloutStyles
      * @param {Array} data.calloutStyleUrls
      */
-    render(creation, { presets = [], bgSrc = null, galleryImages = [], presetBackgrounds = [], fontStyles = [], fontStyleUrls = [], calloutStyles = [], calloutStyleUrls = [] } = {}) {
-        const viewData = this.#prepareViewData(creation, { presets, bgSrc, presetBackgrounds, fontStyles, fontStyleUrls, calloutStyles, calloutStyleUrls });
+    render(creation, { presets = [], bgSrc = null, uploadedImages = [], presetBackgrounds = [], allImages = [], fontStyles = [], fontStyleUrls = [], calloutStyles = [], calloutStyleUrls = [] } = {}) {
+        const viewData = this.#prepareViewData(creation, { presets, bgSrc, presetBackgrounds, allImages, fontStyles, fontStyleUrls, calloutStyles, calloutStyleUrls });
 
         const renderedMain = Mustache.render(this.#template, viewData);
         this.#container.innerHTML = renderedMain;
 
-        this.renderCanvas(creation, { presets, bgSrc, fontStyles, fontStyleUrls, calloutStyles, calloutStyleUrls });
+        this.renderCanvas(creation, { presets, bgSrc, allImages, fontStyles, fontStyleUrls, calloutStyles, calloutStyleUrls });
 
         const partials = {
             'editor-sidebar-general': this.#sidebarGeneralTemplate,
@@ -96,6 +104,7 @@ export class EditorView {
             'layer-font': this.#layerFontTemplate,
             'layer-icon': this.#layerIconTemplate,
             'layer-icon-callout': this.#layerIconCalloutTemplate,
+            'layer-image': this.#layerImageTemplate,
             'icon-picker': this.#iconPickerTemplate,
             'color-picker': this.#colorPickerTemplate
         };
@@ -104,8 +113,8 @@ export class EditorView {
         this.#sidebarContainer.innerHTML = renderedSidebar;
 
         // Render modal if requested
-        if (galleryImages.length >= 0) {
-            this.renderGalleryModal(galleryImages, presetBackgrounds);
+        if (uploadedImages.length >= 0) {
+            this.renderGalleryModal(uploadedImages, presetBackgrounds);
             this.renderAddLayerModal();
         }
     }
@@ -113,7 +122,7 @@ export class EditorView {
     /**
      * Renders only the canvas/iframe content.
      */
-    renderCanvas(creation, { presets = [], bgSrc = null, fontStyles = [], fontStyleUrls = [], calloutStyles = [], calloutStyleUrls = [] } = {}) {
+    renderCanvas(creation, { presets = [], bgSrc = null, allImages = [], fontStyles = [], fontStyleUrls = [], calloutStyles = [], calloutStyleUrls = [] } = {}) {
         // Save current zoom if frame exists
         let currentZoom = null;
         const oldFrame = this.#container.querySelector('wa-zoomable-frame');
@@ -121,7 +130,7 @@ export class EditorView {
             currentZoom = oldFrame.zoom;
         }
 
-        const viewData = this.#prepareViewData(creation, { presets, bgSrc, fontStyles, fontStyleUrls, calloutStyles, calloutStyleUrls });
+        const viewData = this.#prepareViewData(creation, { presets, bgSrc, allImages, fontStyles, fontStyleUrls, calloutStyles, calloutStyleUrls });
         const canvasHtml = Mustache.render(this.#canvasTemplate, viewData);
 
         // Set srcdoc directly to avoid attribute escaping issues
@@ -146,20 +155,31 @@ export class EditorView {
         }
     }
 
-    #prepareViewData(creation, { presets = [], bgSrc = null, presetBackgrounds = [], fontStyles = [], fontStyleUrls = [], calloutStyles = [], calloutStyleUrls = [] } = {}) {
+    #prepareViewData(creation, { presets = [], bgSrc = null, presetBackgrounds = [], allImages = [], fontStyles = [], fontStyleUrls = [], calloutStyles = [], calloutStyleUrls = [] } = {}) {
         const slotIds = [
             'top-left', 'top-middle', 'top-right',
             'center-left', 'center-middle', 'center-right',
             'bottom-left', 'bottom-middle', 'bottom-right'
         ];
 
-        const layersWithMeta = creation ? creation.layers.map((layer, index) => ({
-            ...layer,
-            index,
-            isFont: layer.type === 'font',
-            isIcon: layer.type === 'icon',
-            isIconCallout: layer.type === 'icon-callout'
-        })) : [];
+        const layersWithMeta = creation ? creation.layers.map((layer, index) => {
+            let src = null;
+            if (layer.type === 'image' && layer.imageId) {
+                const img = allImages.find(i => i.id === layer.imageId);
+                if (img) {
+                    src = this.#urlManager.getUrl(img.id, img.imageBlob);
+                }
+            }
+            return {
+                ...layer,
+                index,
+                isFont: layer.type === 'font',
+                isIcon: layer.type === 'icon',
+                isIconCallout: layer.type === 'icon-callout',
+                isImage: layer.type === 'image',
+                src
+            };
+        }) : [];
 
         const layersWithMovement = layersWithMeta.map(layer => {
             const slotLayers = layersWithMeta.filter(l => l.slot === layer.slot);
@@ -219,19 +239,37 @@ export class EditorView {
         // Manage URLs for modal images using central URL manager
         const mappedImages = images.map(img => ({
             id: img.id,
-            src: this.#urlManager.getUrl(img.id, img.imageBlob)
+            src: this.#urlManager.getUrl(img.id, img.imageBlob),
+            category: img.category,
+            source: 'my-uploads',
+            isBackground: img.category === 'background',
+            isImage: img.category === 'image',
+            isModal: true
+        }));
+
+        const mappedPresets = presetBackgrounds.map(bg => ({
+            ...bg,
+            src: this.#urlManager.getUrl(bg.id, bg.imageBlob),
+            category: 'background',
+            source: 'pre-made',
+            isBackground: true,
+            isModal: true
         }));
 
         const renderedModal = Mustache.render(this.#modalTemplate, { 
-            images: mappedImages,
-            presetBackgrounds
+            images: [...mappedImages, ...mappedPresets]
+        }, {
+            'image-card': this.#imageCardTemplate
         });
         
-        // Append instead of overwrite to support multiple modals
-        const div = document.createElement('div');
-        div.id = 'gallery-modal-wrapper';
-        div.innerHTML = renderedModal;
-        modalContainer.appendChild(div);
+        // Use single wrapper and overwrite content to avoid duplicate modals in DOM
+        let wrapper = modalContainer.querySelector('#gallery-modal-wrapper');
+        if (!wrapper) {
+            wrapper = document.createElement('div');
+            wrapper.id = 'gallery-modal-wrapper';
+            modalContainer.appendChild(wrapper);
+        }
+        wrapper.innerHTML = renderedModal;
     }
 
     /**
@@ -243,10 +281,13 @@ export class EditorView {
 
         const renderedModal = Mustache.render(this.#addLayerModalTemplate, {});
         
-        const div = document.createElement('div');
-        div.id = 'add-layer-modal-wrapper';
-        div.innerHTML = renderedModal;
-        modalContainer.appendChild(div);
+        let wrapper = modalContainer.querySelector('#add-layer-modal-wrapper');
+        if (!wrapper) {
+            wrapper = document.createElement('div');
+            wrapper.id = 'add-layer-modal-wrapper';
+            modalContainer.appendChild(wrapper);
+        }
+        wrapper.innerHTML = renderedModal;
     }
 
     get colorPickerTemplate() {

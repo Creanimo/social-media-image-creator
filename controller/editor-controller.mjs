@@ -1,18 +1,25 @@
 import { EditorView } from '../view/editor-view.mjs';
-import { Image } from '../model/image.mjs';
+import { ImageService } from '../util/image-service.mjs';
 import { Creation } from '../model/creation.mjs';
 import { FontLayer } from '../model/font-layer.mjs';
 import { IconLayer } from '../model/icon-layer.mjs';
 import { IconCalloutLayer } from '../model/icon-callout-layer.mjs';
+import { ImageLayer } from '../model/image-layer.mjs';
 import { FontStyleController } from './font-style-controller.mjs';
 import { CalloutStyleController } from './callout-style-controller.mjs';
 import { IconPickerController } from './icon-picker-controller.mjs';
 import { IconPickerView } from '../view/icon-picker-view.mjs';
 import { ColorPickerController } from './color-picker-controller.mjs';
 import { ColorPickerView } from '../view/color-picker-view.mjs';
-
-import { LivePreviewPipeline } from './live-preview-pipeline.mjs';
+import { GalleryFlow } from './gallery-flow.mjs';
+import { LayerFormRegistry } from '../util/layer-form-registry.mjs';
+import { FontLayerFormAdapter } from '../util/layer-form-adapters/font-layer-form-adapter.mjs';
+import { IconLayerFormAdapter } from '../util/layer-form-adapters/icon-layer-form-adapter.mjs';
+import { IconCalloutLayerFormAdapter } from '../util/layer-form-adapters/icon-callout-layer-form-adapter.mjs';
+import { ImageLayerFormAdapter } from '../util/layer-form-adapters/image-layer-form-adapter.mjs';
+import { LayerFactory } from '../util/layer-factory.mjs';
 import { ExportPipeline } from '../util/export-pipeline.mjs';
+import { LivePreviewPipeline } from './live-preview-pipeline.mjs';
 
 export class EditorController {
     #deps;
@@ -21,6 +28,8 @@ export class EditorController {
     #presets;
     #fontStyleController;
     #calloutStyleController;
+    #galleryFlow;
+    #formRegistry;
 
     constructor(deps, container, sidebarContainer) {
         this.#deps = deps;
@@ -29,12 +38,21 @@ export class EditorController {
         this.#presets = [];
         this.#fontStyleController = new FontStyleController();
         this.#calloutStyleController = new CalloutStyleController();
+
+        const modal = container.querySelector('#gallery-modal');
+        this.#galleryFlow = new GalleryFlow(this.#deps, modal);
+
+        this.#formRegistry = new LayerFormRegistry()
+            .register(new FontLayerFormAdapter())
+            .register(new IconLayerFormAdapter())
+            .register(new IconCalloutLayerFormAdapter())
+            .register(new ImageLayerFormAdapter());
     }
 
     async init() {
         // Load presets
         const [presetsRes, fontStylesRes, calloutStylesRes] = await Promise.all([
-            fetch('presets/image-sizes.json'),
+            fetch('/presets/image-sizes.json'),
             this.#fontStyleController.init(),
             this.#calloutStyleController.init()
         ]);
@@ -105,7 +123,7 @@ export class EditorController {
             }
         } else {
             // Create a new blank creation if none is selected
-            const response = await fetch('presets/template-creations/default.json');
+            const response = await fetch('/presets/template-creations/default.json');
             const defaultData = await response.json();
             this.#currentCreation = new Creation(
                 null,
@@ -123,28 +141,28 @@ export class EditorController {
     }
 
     async #updateView(fullRefresh = true) {
+        if (this.#galleryFlow) {
+            await this.#galleryFlow.refresh();
+        }
         let bgSrc = null;
         if (this.#currentCreation?.backgroundImageId) {
-            let img = await this.#deps.imageRepository.get(this.#currentCreation.backgroundImageId, this.#deps);
-            if (!img) {
-                img = await this.#deps.backgroundRepository.get(this.#currentCreation.backgroundImageId);
-            }
+            const img = await ImageService.getImage(this.#deps, this.#currentCreation.backgroundImageId);
             if (img) {
                 bgSrc = this.#deps.imageUrlManager.getUrl(img.id, img.imageBlob);
             }
         }
 
-        const galleryImages = await this.#deps.imageRepository.getAll(this.#deps);
+        const uploadedImages = await this.#deps.imageRepository.getAll(this.#deps);
         const presetBackgrounds = await this.#deps.backgroundRepository.getAll();
         
+        const allImages = [...uploadedImages, ...presetBackgrounds];
+
         const renderData = {
             presets: this.#presets,
             bgSrc,
-            galleryImages,
-            presetBackgrounds: presetBackgrounds.map(bg => ({
-                ...bg,
-                src: this.#deps.imageUrlManager.getUrl(bg.id, bg.imageBlob)
-            })),
+            uploadedImages,
+            presetBackgrounds,
+            allImages,
             fontStyles: this.#fontStyleController.getStyles(),
             fontStyleUrls: this.#fontStyleController.getUrls(),
             calloutStyles: this.#calloutStyleController.getStyles(),
@@ -153,13 +171,13 @@ export class EditorController {
 
         if (fullRefresh) {
             this.#view.render(this.#currentCreation, renderData);
-            this.#bindEvents();
+            await this.#bindEvents();
         } else {
             this.#view.renderCanvas(this.#currentCreation, renderData);
         }
     }
 
-    #bindEvents() {
+    async #bindEvents() {
         const container = this.#view.container;
         const sidebar = this.#view.sidebarContainer;
         const form = sidebar.querySelector('#editor-settings-form');
@@ -208,79 +226,11 @@ export class EditorController {
                     updatedLayer = updatedLayer.withName(nameValue);
                 }
 
-                if (updatedLayer instanceof FontLayer) {
-                    const fontText = sidebar.querySelector(`wa-textarea[name="layer-${index}-text"]`)?.value || '';
-                    const html = fontText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/\n/g, '<br>');
-                    
-                    const slotValue = sidebar.querySelector(`wa-select[name="layer-${index}-slot"]`)?.value;
-                    const styleIdValue = sidebar.querySelector(`wa-select[name="layer-${index}-styleId"]`)?.value;
-                    const sizeInput = sidebar.querySelector(`wa-input[name="layer-${index}-size"]`);
-                    const sizeValue = sizeInput && sizeInput.value !== '' ? parseInt(sizeInput.value) : null;
-                    const widthSlider = sidebar.querySelector(`wa-slider[name="layer-${index}-width"]`);
-                    const widthValue = widthSlider && widthSlider.value !== '' ? parseInt(widthSlider.value) : null;
-                    const offsetXValue = parseInt(sidebar.querySelector(`wa-slider[name="layer-${index}-offsetX"]`)?.value);
-                    const offsetYValue = parseInt(sidebar.querySelector(`wa-slider[name="layer-${index}-offsetY"]`)?.value);
-                    
-                    let updatedLayerFinal = updatedLayer;
-                    if (slotValue !== undefined) updatedLayerFinal = updatedLayerFinal.withSlot(slotValue);
-                    if (styleIdValue !== undefined) updatedLayerFinal = updatedLayerFinal.withStyleId(styleIdValue);
-                    if (fontText !== undefined) updatedLayerFinal = updatedLayerFinal.withText(fontText).withHtml(html);
-                    if (sizeValue !== undefined) updatedLayerFinal = updatedLayerFinal.withSize(sizeValue);
-                    if (widthValue !== undefined) updatedLayerFinal = updatedLayerFinal.withWidth(widthValue);
-                    if (!isNaN(offsetXValue)) updatedLayerFinal = updatedLayerFinal.withOffsetX(offsetXValue);
-                    if (!isNaN(offsetYValue)) updatedLayerFinal = updatedLayerFinal.withOffsetY(offsetYValue);
-                    
-                    return updatedLayerFinal;
-                }
-                
-                if (updatedLayer instanceof IconLayer) {
-                    const iconValue = sidebar.querySelector(`input[name="layer-${index}-icon"]`)?.value || 'photo';
-                    const colorValue = sidebar.querySelector(`input[name="layer-${index}-color"]`)?.value || '#000000';
-                    const slotValue = sidebar.querySelector(`wa-select[name="layer-${index}-slot"]`)?.value;
-                    const sizeInput = sidebar.querySelector(`wa-input[name="layer-${index}-size"]`);
-                    const sizeValue = sizeInput && sizeInput.value !== '' ? parseInt(sizeInput.value) : null;
-                    const offsetXValue = parseInt(sidebar.querySelector(`wa-slider[name="layer-${index}-offsetX"]`)?.value);
-                    const offsetYValue = parseInt(sidebar.querySelector(`wa-slider[name="layer-${index}-offsetY"]`)?.value);
-
-                    let updatedLayerFinal = updatedLayer;
-                    if (slotValue !== undefined) updatedLayerFinal = updatedLayerFinal.withSlot(slotValue);
-                    if (iconValue !== undefined) updatedLayerFinal = updatedLayerFinal.withIcon(iconValue);
-                    if (colorValue !== undefined) updatedLayerFinal = updatedLayerFinal.withColor(colorValue);
-                    if (sizeValue !== undefined) updatedLayerFinal = updatedLayerFinal.withSize(sizeValue);
-                    if (!isNaN(offsetXValue)) updatedLayerFinal = updatedLayerFinal.withOffsetX(offsetXValue);
-                    if (!isNaN(offsetYValue)) updatedLayerFinal = updatedLayerFinal.withOffsetY(offsetYValue);
-
-                    return updatedLayerFinal;
+                const adapter = this.#formRegistry.get(layer.type);
+                if (adapter) {
+                    return adapter.extractUpdated(updatedLayer, sidebar, index);
                 }
 
-                if (updatedLayer instanceof IconCalloutLayer) {
-                    const fontText = sidebar.querySelector(`wa-textarea[name="layer-${index}-text"]`)?.value || '';
-                    const html = fontText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/\n/g, '<br>');
-
-                    const iconValue = sidebar.querySelector(`input[name="layer-${index}-icon"]`)?.value || 'info-circle';
-                    const colorValue = sidebar.querySelector(`input[name="layer-${index}-color"]`)?.value || '#000000';
-                    const slotValue = sidebar.querySelector(`wa-select[name="layer-${index}-slot"]`)?.value;
-                    const styleIdValue = sidebar.querySelector(`wa-select[name="layer-${index}-styleId"]`)?.value;
-                    const sizeInput = sidebar.querySelector(`wa-input[name="layer-${index}-size"]`);
-                    const sizeValue = sizeInput && sizeInput.value !== '' ? parseInt(sizeInput.value) : null;
-                    const widthSlider = sidebar.querySelector(`wa-slider[name="layer-${index}-width"]`);
-                    const widthValue = widthSlider && widthSlider.value !== '' ? parseInt(widthSlider.value) : null;
-                    const offsetXValue = parseInt(sidebar.querySelector(`wa-slider[name="layer-${index}-offsetX"]`)?.value);
-                    const offsetYValue = parseInt(sidebar.querySelector(`wa-slider[name="layer-${index}-offsetY"]`)?.value);
-
-                    let updatedLayerFinal = updatedLayer;
-                    if (slotValue !== undefined) updatedLayerFinal = updatedLayerFinal.withSlot(slotValue);
-                    if (styleIdValue !== undefined) updatedLayerFinal = updatedLayerFinal.withStyleId(styleIdValue);
-                    if (fontText !== undefined) updatedLayerFinal = updatedLayerFinal.withText(fontText).withHtml(html);
-                    if (iconValue !== undefined) updatedLayerFinal = updatedLayerFinal.withIcon(iconValue);
-                    if (colorValue !== undefined) updatedLayerFinal = updatedLayerFinal.withColor(colorValue);
-                    if (sizeValue !== undefined) updatedLayerFinal = updatedLayerFinal.withSize(sizeValue);
-                    if (widthValue !== undefined) updatedLayerFinal = updatedLayerFinal.withWidth(widthValue);
-                    if (!isNaN(offsetXValue)) updatedLayerFinal = updatedLayerFinal.withOffsetX(offsetXValue);
-                    if (!isNaN(offsetYValue)) updatedLayerFinal = updatedLayerFinal.withOffsetY(offsetYValue);
-
-                    return updatedLayerFinal;
-                }
                 return updatedLayer;
             });
 
@@ -464,31 +414,23 @@ export class EditorController {
         addLayerModal?.querySelectorAll('.add-layer-type-btn').forEach(btn => {
             btn.addEventListener('click', async () => {
                 const type = btn.getAttribute('data-type');
-                if (type === 'font') {
-                    const response = await fetch('presets/layers/font.json');
-                    const data = await response.json();
-                    const newLayer = new FontLayer(null, data, this.#deps);
-                    this.#currentCreation = this.#currentCreation.addLayer(newLayer);
-                    await this.#deps.creationRepository.save(this.#currentCreation);
+                if (type === 'image') {
                     addLayerModal.open = false;
-                    await this.#updateView();
-                } else if (type === 'icon') {
-                    const response = await fetch('presets/layers/icon.json');
-                    const data = await response.json();
-                    const newLayer = new IconLayer(null, data, this.#deps);
-                    this.#currentCreation = this.#currentCreation.addLayer(newLayer);
-                    await this.#deps.creationRepository.save(this.#currentCreation);
-                    addLayerModal.open = false;
-                    await this.#updateView();
-                } else if (type === 'icon-callout') {
-                    const response = await fetch('presets/layers/icon-callout.json');
-                    const data = await response.json();
-                    const newLayer = new IconCalloutLayer(null, data, this.#deps);
-                    this.#currentCreation = this.#currentCreation.addLayer(newLayer);
-                    await this.#deps.creationRepository.save(this.#currentCreation);
-                    addLayerModal.open = false;
-                    await this.#updateView();
+                    await this.#galleryFlow.open(['images'], 'layer', async ({ id }) => {
+                        const newLayer = await LayerFactory.createFromPreset('image', this.#deps);
+                        const updatedLayer = newLayer.withImageId(id);
+                        this.#currentCreation = this.#currentCreation.addLayer(updatedLayer);
+                        await this.#deps.creationRepository.save(this.#currentCreation);
+                        await this.#updateView();
+                    });
+                    return;
                 }
+                
+                const newLayer = await LayerFactory.createFromPreset(type, this.#deps);
+                this.#currentCreation = this.#currentCreation.addLayer(newLayer);
+                await this.#deps.creationRepository.save(this.#currentCreation);
+                addLayerModal.open = false;
+                await this.#updateView();
             });
         });
 
@@ -572,9 +514,23 @@ export class EditorController {
         });
 
         // Background: Open Gallery
-        sidebar.querySelector('#open-gallery-btn')?.addEventListener('click', () => {
-            const modal = container.querySelector('#gallery-modal');
-            modal?.show();
+        sidebar.querySelector('#open-gallery-btn')?.addEventListener('click', async () => {
+            await this.#galleryFlow.open(['backgrounds'], 'background', async ({ id }) => {
+                this.#currentCreation = await ImageService.addImageToCreation(this.#deps, this.#currentCreation, id, 'background');
+                await this.#deps.creationRepository.save(this.#currentCreation);
+                await this.#updateView();
+            });
+        });
+
+        // Add Image Layer: Open Gallery
+        sidebar.querySelector('#add-image-layer-btn')?.addEventListener('click', async () => {
+            await this.#galleryFlow.open(['images'], 'layer', async ({ id }) => {
+                const newLayer = await LayerFactory.createFromPreset('image', this.#deps);
+                const updatedLayer = newLayer.withImageId(id);
+                this.#currentCreation = this.#currentCreation.addLayer(updatedLayer);
+                await this.#deps.creationRepository.save(this.#currentCreation);
+                await this.#updateView();
+            });
         });
 
         // Background: Upload
@@ -584,8 +540,7 @@ export class EditorController {
         bgInput?.addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (file) {
-                const newImage = new Image(null, file, this.#deps);
-                await this.#deps.imageRepository.save(newImage);
+                const newImage = await ImageService.saveUpload(this.#deps, file, 'background');
                 
                 // Update hidden input and submit
                 const bgIdInput = sidebar.querySelector('input[name="backgroundImageId"]');
@@ -614,42 +569,6 @@ export class EditorController {
 
         // Modal events
         const modal = container.querySelector('#gallery-modal');
-        
-        // Select from gallery
-        const selectButtons = modal?.querySelectorAll('.select-image-btn');
-        selectButtons?.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const id = btn.getAttribute('data-id');
-                if (id) {
-                    const bgIdInput = sidebar.querySelector('input[name="backgroundImageId"]');
-                    if (bgIdInput) {
-                        bgIdInput.value = id;
-                        modal.open = false;
-                        submitForm();
-                    }
-                }
-            });
-        });
-
-        // Upload from modal
-        const modalUploadTrigger = modal?.querySelector('#modal-upload-trigger');
-        const modalFileInput = modal?.querySelector('#modal-image-upload');
-        modalUploadTrigger?.addEventListener('click', () => modalFileInput?.click());
-        modalFileInput?.addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const newImage = new Image(null, file, this.#deps);
-                await this.#deps.imageRepository.save(newImage);
-                
-                const bgIdInput = sidebar.querySelector('input[name="backgroundImageId"]');
-                if (bgIdInput) {
-                    bgIdInput.value = newImage.id;
-                    modal.open = false;
-                    submitForm();
-                }
-            }
-        });
-
         modal?.querySelector('#close-gallery-modal')?.addEventListener('click', () => modal.open = false);
     }
 }

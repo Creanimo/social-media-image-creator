@@ -21,8 +21,8 @@
   "dependencies": {
     "@awesome.me/webawesome-pro": "^3.2.1",
     "@iconify-json/tabler": "^1.2.27",
-    "@mindblowing/snapdom": "^1.9.9",
     "@tabler/icons": "^3.36.1",
+    "@zumer/snapdom": "^2.0.2",
     "iconify-picker": "^0.7.2",
     "immer": "^11.1.4",
     "mustache": "^4.2.0"

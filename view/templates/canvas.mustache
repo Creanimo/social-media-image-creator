@@ -36,7 +36,7 @@
         "composed-offset-position": "/node_modules/composed-offset-position/dist/composed-offset-position.mjs",
         "nanoid": "/node_modules/nanoid/index.browser.js",
         "iconify-picker": "/node_modules/iconify-picker/lib/iconify-picker.js",
-        "snapdom": "/node_modules/@mindblowing/snapdom/dist/snapdom.mjs"
+        "snapdom": "/node_modules/@zumer/snapdom/dist/snapdom.mjs"
       }
     }
     </script>
@@ -179,6 +179,12 @@
                 </div>
             </div>
             {{/isIconCallout}}
+            {{#isImage}}
+            <div class="image-layer" data-index="{{index}}"
+                 style="transform: translate({{offsetX}}px, {{offsetY}}px); z-index: {{zIndex}}; {{#width}}width: {{width}}px;{{/width}} {{#height}}height: {{height}}px;{{/height}}">
+                <img src="{{src}}" style="{{#width}}width: {{width}}px;{{/width}} {{#height}}height: {{height}}px;{{/height}} object-fit: contain;" />
+            </div>
+            {{/isImage}}
             {{/layers}}
         </div>
         {{/slots}}

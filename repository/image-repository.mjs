@@ -21,7 +21,8 @@ export class ImageRepository extends BaseRepository {
         // Convert to plain object for IndexedDB
         const data = {
             id: image.id,
-            imageBlob: image.imageBlob
+            imageBlob: image.imageBlob,
+            category: image.category
         };
         return this._putRaw(data);
     }
@@ -35,7 +36,7 @@ export class ImageRepository extends BaseRepository {
     async get(id, deps = null) {
         const data = await this._getRaw(id);
         if (!data) return null;
-        return new Image(data.id, data.imageBlob, deps);
+        return new Image(data.id, data.imageBlob, data.category || 'background', deps);
     }
 
     /**
@@ -45,6 +46,6 @@ export class ImageRepository extends BaseRepository {
      */
     async getAll(deps = null) {
         const rawResults = await this._getAllRaw();
-        return rawResults.map(data => new Image(data.id, data.imageBlob, deps));
+        return rawResults.map(data => new Image(data.id, data.imageBlob, data.category || 'background', deps));
     }
 }

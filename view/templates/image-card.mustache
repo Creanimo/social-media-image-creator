@@ -1,10 +1,23 @@
-<wa-card style="">
-    <div slot="media" class="wa-frame" style="width: 300px; height: 300px;">
-        <img src="{{src}}" alt="Uploaded Image" />
+<wa-card data-source="{{source}}" style="display: flex; flex-direction: column;">
+    <div slot="media" class="wa-frame" style="width: 100%; height: 200px;">
+        <img src="{{src}}" alt="Uploaded Image" style="width: 100%; height: 100%; object-fit: cover;" />
     </div>
 
-    <wa-button variant="danger" size="small" data-id="{{id}}" class="delete-btn">
-        <wa-icon name="trash" library="tabler" slot="start"></wa-icon>
-        Delete
-    </wa-button>
+    <div class="wa-stack" style="gap: 0.5rem; padding: 0.5rem;">
+        {{#isGallery}}
+        <wa-button variant="primary" size="small" class="start-creation-btn" data-id="{{id}}" data-category="{{category}}" style="width: 100%;">
+            <wa-icon name="plus" library="tabler" slot="start"></wa-icon>
+            Start Creation
+        </wa-button>
+        <wa-button variant="danger" size="small" data-id="{{id}}" class="delete-btn" style="width: 100%;">
+            <wa-icon name="trash" library="tabler" slot="start"></wa-icon>
+            Delete
+        </wa-button>
+        {{/isGallery}}
+        {{#isModal}}
+        <wa-button variant="primary" size="small" class="select-image-btn" data-id="{{id}}" style="width: 100%;">
+            Add to Creation
+        </wa-button>
+        {{/isModal}}
+    </div>
 </wa-card>

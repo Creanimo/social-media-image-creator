@@ -1,12 +1,12 @@
-import { Image } from '../model/image.mjs';
-import { GalleryView } from '../view/gallery-view.mjs';
+import { ImageService } from '../util/image-service.mjs';
+import { GalleryComponent } from '../view/gallery-component.mjs';
 
 /**
  * Controller for managing the image gallery.
  */
 export class GalleryController {
     #deps;
-    #view;
+    #gallery;
 
     /**
      * @param {Dependencies} deps
@@ -14,14 +14,19 @@ export class GalleryController {
      */
     constructor(deps, container) {
         this.#deps = deps;
-        this.#view = new GalleryView(container, deps.imageUrlManager);
+        this.#gallery = new GalleryComponent(container, deps, {
+            tabs: ['backgrounds', 'images'],
+            onUpload: (file, category) => this.#handleUpload(file, category),
+            onDelete: (id) => this.#handleDelete(id),
+            onStartCreation: (id, category) => this.#handleStartCreation(id, category)
+        });
     }
 
     /**
      * Initializes the gallery.
      */
     async init() {
-        await this.#view.loadTemplates();
+        await this.#gallery.loadTemplates();
         await this.refresh();
     }
 
@@ -29,46 +34,50 @@ export class GalleryController {
      * Refreshes the gallery data and re-renders.
      */
     async refresh() {
-        const images = await this.#deps.imageRepository.getAll(this.#deps);
-        this.#view.render(images);
-        this.#bindEvents();
+        const state = this.#gallery.getState();
+
+        const uploadedImages = await this.#deps.imageRepository.getAll(this.#deps);
+        const presetBackgrounds = await this.#deps.backgroundRepository.getAll();
+
+        const mapUploaded = img => ({
+            id: img.id,
+            src: this.#deps.imageUrlManager.getUrl(img.id, img.imageBlob),
+            category: img.category,
+            source: 'my-uploads'
+        });
+
+        const mapPreset = bg => ({
+            ...bg,
+            src: this.#deps.imageUrlManager.getUrl(bg.id, bg.imageBlob),
+            category: 'background',
+            source: 'pre-made'
+        });
+
+        const backgrounds = [
+            ...uploadedImages.filter(img => img.category === 'background').map(mapUploaded),
+            ...presetBackgrounds.map(mapPreset)
+        ];
+        const images = uploadedImages.filter(img => img.category === 'image').map(mapUploaded);
+
+        await this.#gallery.render({
+            backgrounds: backgrounds,
+            images: images
+        });
+
+        await this.#gallery.restoreState(state);
     }
 
-    #bindEvents() {
-        const container = this.#view.container;
-        // Upload trigger
-        const uploadTrigger = container.querySelector('#upload-trigger');
-        const fileInput = container.querySelector('#image-upload');
-
-        uploadTrigger?.addEventListener('click', () => fileInput?.click());
-
-        fileInput?.addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                await this.#handleUpload(file);
-                // Clear input
-                e.target.value = '';
-            }
-        });
-
-        // Delete buttons
-        const deleteButtons = container.querySelectorAll('.delete-btn');
-        deleteButtons.forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const id = btn.getAttribute('data-id');
-                if (id) {
-                    await this.#handleDelete(id);
-                }
-            });
-        });
+    async #handleStartCreation(id, category) {
+        const newCreation = await ImageService.startCreationFromImage(this.#deps, id, category);
+        window.location.hash = `#editor?id=${newCreation.id}`;
     }
 
     /**
      * @param {File} file
+     * @param {string} category
      */
-    async #handleUpload(file) {
-        const newImage = new Image(null, file, this.#deps);
-        await this.#deps.imageRepository.save(newImage);
+    async #handleUpload(file, category) {
+        await ImageService.saveUpload(this.#deps, file, category);
         await this.refresh();
     }
 

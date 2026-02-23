@@ -1,0 +1,10 @@
+{
+  "type": "image",
+  "name": "New Image Layer",
+  "visible": true,
+  "slot": "center-middle",
+  "width": 200,
+  "height": null,
+  "offsetX": 0,
+  "offsetY": 0
+}

@@ -38,7 +38,13 @@ const LivePreviewReceiver = {
                 }
             }
             if (width !== undefined) {
+                // Set width on the layer container for font and callout layers
                 layer.style.width = width ? `${width}px` : '';
+                // For image layers, also update the inner <img> width so the visual updates immediately
+                const img = layer.querySelector('img');
+                if (img) {
+                    img.style.width = width ? `${width}px` : '';
+                }
             }
         }
     }

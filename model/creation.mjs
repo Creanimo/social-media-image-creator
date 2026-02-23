@@ -3,6 +3,7 @@ import { Layer } from './layer.mjs';
 import { FontLayer } from './font-layer.mjs';
 import { IconLayer } from './icon-layer.mjs';
 import { IconCalloutLayer } from './icon-callout-layer.mjs';
+import { ImageLayer } from './image-layer.mjs';
 import { Dependencies } from '../util/dependencies.mjs';
 
 /**
@@ -53,6 +54,9 @@ export class Creation {
                 }
                 if (layerData.type === 'icon-callout') {
                     return new IconCalloutLayer(layerData.id, layerData, deps);
+                }
+                if (layerData.type === 'image') {
+                    return new ImageLayer(layerData.id, layerData, deps);
                 }
                 return new Layer(layerData.id, layerData.name, layerData.visible, deps);
             });

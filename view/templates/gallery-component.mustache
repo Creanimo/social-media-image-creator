@@ -1,0 +1,40 @@
+<wa-tab-group class="gallery-tabs" active="{{initialActive}}">
+    {{#tabs}}
+    <wa-tab slot="nav" panel="{{id}}">{{label}}</wa-tab>
+    {{/tabs}}
+
+    {{#tabs}}
+    <wa-tab-panel name="{{id}}">
+        <div class="wa-stack" style="gap: 1rem; padding-top: 1rem;">
+            <div class="wa-cluster" style="justify-content: space-between; align-items: center;">
+                <wa-combobox placeholder="Filter images..." multiple with-clear class="filter-combobox" data-category="{{id}}" style="flex: 1;">
+                    <wa-option value="my-uploads" selected>
+                        <wa-icon slot="start" name="upload" library="tabler"></wa-icon>
+                        My Uploads
+                    </wa-option>
+                    <wa-option value="pre-made" selected>
+                        <wa-icon slot="start" name="photo" library="tabler"></wa-icon>
+                        Pre-made
+                    </wa-option>
+                </wa-combobox>
+
+                <wa-button class="upload-trigger" data-category="{{id}}" variant="primary">
+                    <wa-icon name="upload" library="tabler" slot="prefix"></wa-icon>
+                    Upload New {{label}}
+                </wa-button>
+            </div>
+
+            <div class="wa-cluster gallery-list" style="--max-column-size: 200px" data-category="{{id}}">
+                {{#items}}
+                {{> image-card}}
+                {{/items}}
+                {{^items}}
+                <p>No {{label}} found.</p>
+                {{/items}}
+            </div>
+        </div>
+    </wa-tab-panel>
+    {{/tabs}}
+</wa-tab-group>
+
+<input type="file" class="image-upload-input" accept="image/*" style="display: none;" />
