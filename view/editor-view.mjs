@@ -12,12 +12,16 @@ export class EditorView {
     #layerIconTemplate;
     #layerIconCalloutTemplate;
     #layerImageTemplate;
+    #canvasTemplate;
+    #canvasLayerFontTemplate;
+    #canvasLayerIconTemplate;
+    #canvasLayerIconCalloutTemplate;
+    #canvasLayerImageTemplate;
     #imageCardTemplate;
     #iconPickerTemplate;
     #colorPickerTemplate;
     #modalTemplate;
     #addLayerModalTemplate;
-    #canvasTemplate;
     #urlManager;
     #preferences;
 
@@ -36,6 +40,10 @@ export class EditorView {
         this.#layerIconTemplate = null;
         this.#layerIconCalloutTemplate = null;
         this.#layerImageTemplate = null;
+        this.#canvasLayerFontTemplate = null;
+        this.#canvasLayerIconTemplate = null;
+        this.#canvasLayerIconCalloutTemplate = null;
+        this.#canvasLayerImageTemplate = null;
         this.#imageCardTemplate = null;
         this.#iconPickerTemplate = null;
         this.#urlManager = urlManager;
@@ -43,7 +51,7 @@ export class EditorView {
     }
 
     async loadTemplates() {
-        const [editorRes, sidebarRes, sidebarGeneralRes, sidebarBackgroundRes, sidebarLayersRes, layerFontRes, layerIconRes, layerIconCalloutRes, layerImageRes, imageCardRes, iconPickerRes, colorPickerRes, modalRes, addLayerModalRes, canvasRes] = await Promise.all([
+        const [editorRes, sidebarRes, sidebarGeneralRes, sidebarBackgroundRes, sidebarLayersRes, layerFontRes, layerIconRes, layerIconCalloutRes, layerImageRes, imageCardRes, iconPickerRes, colorPickerRes, modalRes, addLayerModalRes, canvasRes, canvasLayerFontRes, canvasLayerIconRes, canvasLayerIconCalloutRes, canvasLayerImageRes] = await Promise.all([
             fetch('view/templates/editor.mustache'),
             fetch('view/templates/editor-sidebar.mustache'),
             fetch('view/templates/editor-sidebar-general.mustache'),
@@ -58,7 +66,11 @@ export class EditorView {
             fetch('view/templates/color-picker.mustache'),
             fetch('view/templates/gallery-modal.mustache'),
             fetch('view/templates/add-layer-modal.mustache'),
-            fetch('view/templates/canvas.mustache')
+            fetch('view/templates/canvas.mustache'),
+            fetch('view/templates/canvas-layer-font.mustache'),
+            fetch('view/templates/canvas-layer-icon.mustache'),
+            fetch('view/templates/canvas-layer-icon-callout.mustache'),
+            fetch('view/templates/canvas-layer-image.mustache')
         ]);
         this.#template = await editorRes.text();
         this.#sidebarTemplate = await sidebarRes.text();
@@ -75,6 +87,10 @@ export class EditorView {
         this.#modalTemplate = await modalRes.text();
         this.#addLayerModalTemplate = await addLayerModalRes.text();
         this.#canvasTemplate = await canvasRes.text();
+        this.#canvasLayerFontTemplate = await canvasLayerFontRes.text();
+        this.#canvasLayerIconTemplate = await canvasLayerIconRes.text();
+        this.#canvasLayerIconCalloutTemplate = await canvasLayerIconCalloutRes.text();
+        this.#canvasLayerImageTemplate = await canvasLayerImageRes.text();
     }
 
     /**
@@ -131,7 +147,13 @@ export class EditorView {
         }
 
         const viewData = this.#prepareViewData(creation, { presets, bgSrc, allImages, fontStyles, fontStyleUrls, calloutStyles, calloutStyleUrls });
-        const canvasHtml = Mustache.render(this.#canvasTemplate, viewData);
+        const partials = {
+            'canvas-layer-font': this.#canvasLayerFontTemplate,
+            'canvas-layer-icon': this.#canvasLayerIconTemplate,
+            'canvas-layer-icon-callout': this.#canvasLayerIconCalloutTemplate,
+            'canvas-layer-image': this.#canvasLayerImageTemplate
+        };
+        const canvasHtml = Mustache.render(this.#canvasTemplate, viewData, partials);
 
         // Set srcdoc directly to avoid attribute escaping issues
         const zoomableFrame = this.#container.querySelector('wa-zoomable-frame');

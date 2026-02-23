@@ -1,0 +1,10 @@
+<div class="canvas__slot canvas__slot--{{slot}} icon-callout-layer {{styleId}}" 
+     data-index="{{index}}"
+     style="z-index: {{zIndex}}; {{#width}}width: {{width}}px;{{/width}} {{#height}}height: {{height}}px;{{/height}}">
+    <div style="transform: translate({{offsetX}}px, {{offsetY}}px);">
+        <div class="wa-flank wa-align-items-start" style="{{#width}}width: {{width}}px;{{/width}}">
+            <wa-icon class="icon-callout-layer__icon" slot="icon" name="{{icon}}" library="tabler" style="font-size: {{size}}px; color: {{color}};"></wa-icon>
+            <div class="icon-callout-layer__text" style="{{#size}}font-size: {{size}}px; {{/size}} color: {{color}};">{{{html}}}</div>
+        </div>
+    </div>
+</div>

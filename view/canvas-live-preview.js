@@ -19,7 +19,11 @@ const LivePreviewReceiver = {
             if (offsetX !== undefined || offsetY !== undefined) {
                 const ox = !isNaN(offsetX) ? offsetX : 0;
                 const oy = !isNaN(offsetY) ? offsetY : 0;
-                layer.style.transform = `translate(${ox}px, ${oy}px)`;
+                // Update the first child div which has the transform
+                const contentDiv = layer.querySelector('div');
+                if (contentDiv) {
+                    contentDiv.style.transform = `translate(${ox}px, ${oy}px)`;
+                }
             }
             if (size !== undefined) {
                 layer.style.fontSize = size ? `${size}px` : '';
@@ -40,6 +44,11 @@ const LivePreviewReceiver = {
             if (width !== undefined) {
                 // Set width on the layer container for font and callout layers
                 layer.style.width = width ? `${width}px` : '';
+                // For icon callout layers, also update the inner wa-flank width
+                const calloutContent = layer.querySelector('.wa-flank');
+                if (calloutContent) {
+                    calloutContent.style.width = width ? `${width}px` : '';
+                }
                 // For image layers, also update the inner <img> width so the visual updates immediately
                 const img = layer.querySelector('img');
                 if (img) {

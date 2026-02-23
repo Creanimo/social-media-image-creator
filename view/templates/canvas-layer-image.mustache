@@ -1,0 +1,7 @@
+<div class="canvas__slot canvas__slot--{{slot}} image-layer" 
+     data-index="{{index}}"
+     style="z-index: {{zIndex}}; {{#width}}width: {{width}}px;{{/width}} {{#height}}height: {{height}}px;{{/height}}">
+    <div style="transform: translate({{offsetX}}px, {{offsetY}}px);">
+        <img src="{{src}}" style="{{#width}}width: {{width}}px;{{/width}} {{#height}}height: {{height}}px;{{/height}} object-fit: contain;" />
+    </div>
+</div>
