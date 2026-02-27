@@ -1,4 +1,3 @@
-import { ImageService } from '../service/image-service.mjs';
 import { GalleryComponent } from '../view/gallery-component.mjs';
 
 /**
@@ -74,7 +73,7 @@ export class GalleryController {
     }
 
     async #handleStartCreation(id, category) {
-        const newCreation = await ImageService.startCreationFromImage(this.#deps, id, category);
+        const newCreation = await this.#deps.imageService.startCreationFromImage(id, category);
         window.location.hash = `#editor?id=${newCreation.id}`;
     }
 
@@ -83,7 +82,7 @@ export class GalleryController {
      * @param {string} category
      */
     async #handleUpload(file, category) {
-        await ImageService.saveUpload(this.#deps, file, category);
+        await this.#deps.imageService.saveUpload(file, category);
         await this.refresh();
     }
 

@@ -18,7 +18,13 @@ import { ImagePresetIngestController } from './controller/image-preset-ingest-co
 import { FontStyleController } from './controller/font-style-controller.mjs';
 import { FontStyleListController } from './controller/font-style-list-controller.mjs';
 import { Router } from './router/router.mjs';
+import { CategoryUtils } from './util/category-utils.mjs';
+import { AssetIngestService } from './service/asset-ingest-service.mjs';
+import { ExportAsImage } from './service/export-as-image.mjs';
+import { ExportAsJson } from './service/export-as-json.mjs';
+import { ImageService } from './service/image-service.mjs';
 import { ImportJson } from './service/import-json.mjs';
+import { LayerFactory } from './service/layer-factory.mjs';
 
 async function init() {
     // 1. Setup Dependencies
@@ -31,8 +37,17 @@ async function init() {
         backgroundRepository: new BackgroundRepository(db),
         imagePresetRepository: new ImagePresetRepository(db),
         imageUrlManager: new ImageUrlManager(),
-        preferences: new Preferences()
+        preferences: new Preferences(),
+        categoryUtils: new CategoryUtils()
     });
+
+    // 1.1 Setup Services
+    deps.imageService = new ImageService(deps);
+    deps.layerFactory = new LayerFactory(deps);
+    deps.exportAsImage = new ExportAsImage(deps);
+    deps.exportAsJson = new ExportAsJson(deps);
+    deps.importJson = new ImportJson(deps);
+    deps.assetIngestService = new AssetIngestService(deps);
 
     // 2. Render Base Frame
     const backgroundIngestController = new BackgroundIngestController(deps);
@@ -88,10 +103,9 @@ async function init() {
     document.getElementById('app').innerHTML = renderedFrame;
 
     // 2.5 Setup Header Button
-    const importer = new ImportJson(deps);
     document.getElementById('load-from-json-btn').addEventListener('click', async () => {
         try {
-            const creation = await importer.uploadImport();
+            const creation = await deps.importJson.uploadImport();
             window.location.hash = `#editor?id=${creation.id}`;
             // If we are already on the editor page, we might need a manual trigger to reload
             if (window.location.hash.startsWith('#editor')) {

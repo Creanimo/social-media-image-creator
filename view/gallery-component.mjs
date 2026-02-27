@@ -1,6 +1,5 @@
 import Mustache from 'mustache';
 
-import { CategoryUtils } from '../util/category-utils.mjs';
 
 /**
  * Modular component for displaying an image gallery with tabs.
@@ -126,7 +125,7 @@ export class GalleryComponent {
             if (file && this.#onUpload) {
                 const state = this.getState();
                 // Normalize category from tab id (e.g., "backgrounds" -> "background")
-                const normalizedCategory = CategoryUtils.normalize(category);
+                const normalizedCategory = this.#deps.categoryUtils.normalize(category);
                 await this.#onUpload(file, normalizedCategory);
                 e.target.value = '';
                 fileInput.removeAttribute('data-target-category');

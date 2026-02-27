@@ -1,7 +1,3 @@
-import { GalleryComponent } from '../view/gallery-component.mjs';
-import { ImageService } from '../service/image-service.mjs';
-import { CategoryUtils } from '../util/category-utils.mjs';
-
 /**
  * Controller/Orchestrator for gallery interactions within modals.
  */
@@ -88,13 +84,13 @@ export class GalleryFlow {
     }
 
     async #handleSelect(id, tabId) {
-        const category = CategoryUtils.normalize(tabId);
+        const category = this.#deps.categoryUtils.normalize(tabId);
         await this.#apply(id, category);
     }
 
     async #handleUpload(file, category) {
-        const normalizedCategory = CategoryUtils.normalize(category);
-        const newImage = await ImageService.saveUpload(this.#deps, file, normalizedCategory);
+        const normalizedCategory = this.#deps.categoryUtils.normalize(category);
+        const newImage = await this.#deps.imageService.saveUpload(file, normalizedCategory);
         await this.#apply(newImage.id, normalizedCategory);
     }
 

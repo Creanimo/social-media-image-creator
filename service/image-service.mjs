@@ -6,44 +6,51 @@ import { ImageLayer } from '../model/image-layer.mjs';
  * Shared image-related operations.
  */
 export class ImageService {
+    /** @type {Dependencies} */
+    #deps;
+
+    /**
+     * @param {Dependencies} deps
+     */
+    constructor(deps) {
+        this.#deps = deps;
+    }
+
     /**
      * Saves an uploaded file as an Image with the given category.
-     * @param {Dependencies} deps
      * @param {File|Blob} file
      * @param {'background'|'image'} category
      * @returns {Promise<import('../model/image.mjs').Image>}
      */
-    static async saveUpload(deps, file, category = 'background') {
-        const img = new Image(null, file, category, deps);
-        await deps.imageRepository.save(img);
+    async saveUpload(file, category = 'background') {
+        const img = new Image(null, file, category, this.#deps);
+        await this.#deps.imageRepository.save(img);
         return img;
     }
 
     /**
      * Fetches an image by ID from either the image, background or image preset repository.
-     * @param {Dependencies} deps
      * @param {string} id
      * @returns {Promise<Object|null>}
      */
-    static async getImage(deps, id) {
-        let img = await deps.imageRepository.get(id, deps);
+    async getImage(id) {
+        let img = await this.#deps.imageRepository.get(id, this.#deps);
         if (!img) {
-            img = await deps.backgroundRepository.get(id);
+            img = await this.#deps.backgroundRepository.get(id);
         }
         if (!img) {
-            img = await deps.imagePresetRepository.get(id);
+            img = await this.#deps.imagePresetRepository.get(id);
         }
         return img;
     }
 
     /**
      * Starts a new creation from an image.
-     * @param {Dependencies} deps
      * @param {string} id Image ID
      * @param {'background'|'image'} category
      * @returns {Promise<Creation>}
      */
-    static async startCreationFromImage(deps, id, category) {
+    async startCreationFromImage(id, category) {
         const response = await fetch('/presets/template-creations/default.json');
         const defaultData = await response.json();
         
@@ -52,30 +59,29 @@ export class ImageService {
             creationData.backgroundImageId = id;
         }
 
-        let newCreation = new Creation(null, creationData, deps);
+        let newCreation = new Creation(null, creationData, this.#deps);
 
         if (category === 'image') {
             const imgLayer = new ImageLayer(null, {
                 name: 'Image Layer',
                 imageId: id,
                 slot: 'center-middle'
-            }, deps);
+            }, this.#deps);
             newCreation = newCreation.addLayer(imgLayer);
         }
 
-        await deps.creationRepository.save(newCreation);
+        await this.#deps.creationRepository.save(newCreation);
         return newCreation;
     }
 
     /**
      * Adds an image to an existing creation.
-     * @param {Dependencies} deps
      * @param {Creation} creation
      * @param {string} id Image ID
      * @param {'background'|'image'} category
      * @returns {Promise<Creation>}
      */
-    static async addImageToCreation(deps, creation, id, category) {
+    async addImageToCreation(creation, id, category) {
         let updatedCreation = creation;
         if (category === 'background') {
             updatedCreation = creation.withBackgroundImageId(id);
@@ -84,10 +90,10 @@ export class ImageService {
                 name: 'Image Layer',
                 imageId: id,
                 slot: 'center-middle'
-            }, deps);
+            }, this.#deps);
             updatedCreation = creation.addLayer(imgLayer);
         }
-        await deps.creationRepository.save(updatedCreation);
+        await this.#deps.creationRepository.save(updatedCreation);
         return updatedCreation;
     }
 }

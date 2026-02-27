@@ -1,5 +1,4 @@
 import { EditorView } from '../view/editor-view.mjs';
-import { ImageService } from '../service/image-service.mjs';
 import { Creation } from '../model/creation.mjs';
 import { FontLayer } from '../model/font-layer.mjs';
 import { IconLayer } from '../model/icon-layer.mjs';
@@ -17,10 +16,7 @@ import { FontLayerFormAdapter } from '../adapter/layer-form-adapters/font-layer-
 import { IconLayerFormAdapter } from '../adapter/layer-form-adapters/icon-layer-form-adapter.mjs';
 import { IconCalloutLayerFormAdapter } from '../adapter/layer-form-adapters/icon-callout-layer-form-adapter.mjs';
 import { ImageLayerFormAdapter } from '../adapter/layer-form-adapters/image-layer-form-adapter.mjs';
-import { LayerFactory } from '../service/layer-factory.mjs';
-import { ExportAsImage } from '../service/export-as-image.mjs';
 import { LivePreviewPipeline } from './live-preview-pipeline.mjs';
-import { ExportAsJson } from '../service/export-as-json.mjs';
 
 export class EditorController {
     #deps;
@@ -181,7 +177,7 @@ export class EditorController {
         } else {
             let bgSrc = null;
             if (this.#currentCreation?.backgroundImageId) {
-                const img = await ImageService.getImage(this.#deps, this.#currentCreation.backgroundImageId);
+                const img = await this.#deps.imageService.getImage(this.#currentCreation.backgroundImageId);
                 if (img) {
                     bgSrc = this.#deps.imageUrlManager.getUrl(img.id, img.imageBlob);
                 }
@@ -433,7 +429,7 @@ export class EditorController {
                     throw new Error('Canvas element not found in iframe');
                 }
 
-                const blob = await ExportAsImage.exportAsPng(canvasEl);
+                const blob = await this.#deps.exportAsImage.exportAsPng(canvasEl);
 
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -456,8 +452,7 @@ export class EditorController {
             const btn = container.querySelector('#export-json-btn');
             btn.loading = true;
             try {
-                const exporter = new ExportAsJson(this.#deps);
-                await exporter.downloadExport(this.#currentCreation.id);
+                await this.#deps.exportAsJson.downloadExport(this.#currentCreation.id);
             } catch (error) {
                 console.error('JSON Export failed:', error);
                 alert(`Export failed: ${error.message}`);
@@ -481,7 +476,7 @@ export class EditorController {
                     addLayerModal.open = false;
                     if (this.#galleryFlow) {
                         await this.#galleryFlow.open(['images'], 'layer', async ({ id }) => {
-                            const newLayer = await LayerFactory.createFromPreset('image', this.#deps);
+                            const newLayer = await this.#deps.layerFactory.createFromPreset('image');
                             const updatedLayer = newLayer.withImageId(id);
                             this.#currentCreation = this.#currentCreation.addLayer(updatedLayer);
                             await this.#deps.creationRepository.save(this.#currentCreation);
@@ -491,7 +486,7 @@ export class EditorController {
                     return;
                 }
                 
-                const newLayer = await LayerFactory.createFromPreset(type, this.#deps);
+                const newLayer = await this.#deps.layerFactory.createFromPreset(type);
                 this.#currentCreation = this.#currentCreation.addLayer(newLayer);
                 await this.#deps.creationRepository.save(this.#currentCreation);
                 addLayerModal.open = false;
@@ -582,7 +577,7 @@ export class EditorController {
         sidebar.querySelector('#open-gallery-btn')?.addEventListener('click', async () => {
             if (this.#galleryFlow) {
                 await this.#galleryFlow.open(['backgrounds'], 'background', async ({ id }) => {
-                    this.#currentCreation = await ImageService.addImageToCreation(this.#deps, this.#currentCreation, id, 'background');
+                    this.#currentCreation = await this.#deps.imageService.addImageToCreation(this.#currentCreation, id, 'background');
                     await this.#deps.creationRepository.save(this.#currentCreation);
                     await this.#updateView();
                 });
@@ -593,7 +588,7 @@ export class EditorController {
         sidebar.querySelector('#add-image-layer-btn')?.addEventListener('click', async () => {
             if (this.#galleryFlow) {
                 await this.#galleryFlow.open(['images'], 'layer', async ({ id }) => {
-                    const newLayer = await LayerFactory.createFromPreset('image', this.#deps);
+                    const newLayer = await this.#deps.layerFactory.createFromPreset('image');
                     const updatedLayer = newLayer.withImageId(id);
                     this.#currentCreation = this.#currentCreation.addLayer(updatedLayer);
                     await this.#deps.creationRepository.save(this.#currentCreation);
@@ -609,7 +604,7 @@ export class EditorController {
         bgInput?.addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (file) {
-                const newImage = await ImageService.saveUpload(this.#deps, file, 'background');
+                const newImage = await this.#deps.imageService.saveUpload(file, 'background');
                 
                 // Update hidden input and submit
                 const bgIdInput = sidebar.querySelector('input[name="backgroundImageId"]');

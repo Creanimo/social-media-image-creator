@@ -1,10 +1,7 @@
-import { AssetIngestService } from '../service/asset-ingest-service.mjs';
-
 /**
  * Controller to handle the ingestion of background images from presets.
  */
 export class BackgroundIngestController {
-    #assetIngestService;
     #deps;
 
     /**
@@ -12,7 +9,6 @@ export class BackgroundIngestController {
      */
     constructor(deps) {
         this.#deps = deps;
-        this.#assetIngestService = new AssetIngestService(deps);
     }
 
     /**
@@ -20,7 +16,7 @@ export class BackgroundIngestController {
      * @returns {Promise<void>}
      */
     async ingest() {
-        return this.#assetIngestService.ingest({
+        return this.#deps.assetIngestService.ingest({
             manifestUrl: '/presets/backgrounds/backgrounds.json',
             assetPath: '/presets/backgrounds/',
             collectionProperty: 'backgrounds',

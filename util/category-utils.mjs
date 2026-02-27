@@ -7,7 +7,7 @@ export class CategoryUtils {
      * @param {string} category - e.g., 'backgrounds' or 'images'
      * @returns {'background'|'image'|string} Singular category
      */
-    static normalize(category) {
+    normalize(category) {
         if (category === 'backgrounds') return 'background';
         if (category === 'images') return 'image';
         return category;

@@ -4,12 +4,22 @@ import { snapdom } from 'snapdom';
  * Utility class for exporting the canvas as a PNG using snapdom.
  */
 export class ExportAsImage {
+    /** @type {Dependencies} */
+    #deps;
+
+    /**
+     * @param {Dependencies} deps
+     */
+    constructor(deps) {
+        this.#deps = deps;
+    }
+
     /**
      * Exports the given element as a PNG blob.
      * @param {HTMLElement} element 
      * @returns {Promise<Blob>}
      */
-    static async exportAsPng(element) {
+    async exportAsPng(element) {
         if (!element) {
             throw new Error('No element provided for export');
         }

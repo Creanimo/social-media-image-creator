@@ -1,10 +1,7 @@
-import { AssetIngestService } from '../service/asset-ingest-service.mjs';
-
 /**
  * Controller to handle the ingestion of image presets.
  */
 export class ImagePresetIngestController {
-    #assetIngestService;
     #deps;
 
     /**
@@ -12,7 +9,6 @@ export class ImagePresetIngestController {
      */
     constructor(deps) {
         this.#deps = deps;
-        this.#assetIngestService = new AssetIngestService(deps);
     }
 
     /**
@@ -20,7 +16,7 @@ export class ImagePresetIngestController {
      * @returns {Promise<void>}
      */
     async ingest() {
-        return this.#assetIngestService.ingest({
+        return this.#deps.assetIngestService.ingest({
             manifestUrl: '/presets/images/images.json',
             assetPath: '/presets/images/',
             collectionProperty: 'images',
