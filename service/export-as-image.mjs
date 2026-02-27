@@ -3,7 +3,7 @@ import { snapdom } from 'snapdom';
 /**
  * Utility class for exporting the canvas as a PNG using snapdom.
  */
-export class ExportPipeline {
+export class ExportAsImage {
     /**
      * Exports the given element as a PNG blob.
      * @param {HTMLElement} element 
@@ -21,7 +21,7 @@ export class ExportPipeline {
             const blob = await snapdom.toBlob(element, { type: 'png' });
             return blob;
         } catch (error) {
-            console.error('[ExportPipeline] Export failed:', error);
+            console.error('[ExportAsImage] Export failed:', error);
             throw error;
         }
     }

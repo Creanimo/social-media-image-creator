@@ -8,14 +8,17 @@ import { ImageUrlManager } from './util/image-url-manager.mjs';
 import { ImageRepository } from './repository/image-repository.mjs';
 import { CreationRepository } from './repository/creation-repository.mjs';
 import { BackgroundRepository } from './repository/background-repository.mjs';
+import { ImagePresetRepository } from './repository/image-preset-repository.mjs';
 import { GalleryController } from './controller/gallery-controller.mjs';
 import { CreationsController } from './controller/creations-controller.mjs';
 import { EditorController } from './controller/editor-controller.mjs';
 import { SettingsController } from './controller/settings-controller.mjs';
 import { BackgroundIngestController } from './controller/background-ingest-controller.mjs';
+import { ImagePresetIngestController } from './controller/image-preset-ingest-controller.mjs';
 import { FontStyleController } from './controller/font-style-controller.mjs';
 import { FontStyleListController } from './controller/font-style-list-controller.mjs';
 import { Router } from './router/router.mjs';
+import { ImportJson } from './service/import-json.mjs';
 
 async function init() {
     // 1. Setup Dependencies
@@ -26,15 +29,18 @@ async function init() {
         imageRepository: new ImageRepository(db),
         creationRepository: new CreationRepository(db),
         backgroundRepository: new BackgroundRepository(db),
+        imagePresetRepository: new ImagePresetRepository(db),
         imageUrlManager: new ImageUrlManager(),
         preferences: new Preferences()
     });
 
     // 2. Render Base Frame
     const backgroundIngestController = new BackgroundIngestController(deps);
+    const imagePresetIngestController = new ImagePresetIngestController(deps);
     const fontStyleController = new FontStyleController();
     await Promise.all([
         backgroundIngestController.ingest(),
+        imagePresetIngestController.ingest(),
         fontStyleController.init()
     ]);
 
@@ -52,7 +58,15 @@ async function init() {
 
     const frameData = {
         'font-styles': fontStylesHtml,
-        'header': '<h1>Social Media Image Creator</h1>',
+        'header': `
+            <div class="wa-cluster" style="justify-content: space-between; align-items: center; width: 100%;">
+                <h1>Social Media Image Creator</h1>
+                <wa-button id="load-from-json-btn" variant="neutral" size="small">
+                    <wa-icon name="file-import" library="tabler" slot="prefix"></wa-icon>
+                    Load from JSON
+                </wa-button>
+            </div>
+        `,
         'main-navigation': `
             <ul>
                 <li>
@@ -72,6 +86,22 @@ async function init() {
 
     const renderedFrame = Mustache.render(template, frameData);
     document.getElementById('app').innerHTML = renderedFrame;
+
+    // 2.5 Setup Header Button
+    const importer = new ImportJson(deps);
+    document.getElementById('load-from-json-btn').addEventListener('click', async () => {
+        try {
+            const creation = await importer.uploadImport();
+            window.location.hash = `#editor?id=${creation.id}`;
+            // If we are already on the editor page, we might need a manual trigger to reload
+            if (window.location.hash.startsWith('#editor')) {
+                window.dispatchEvent(new HashChangeEvent('hashchange'));
+            }
+        } catch (err) {
+            console.error('Import failed:', err);
+            alert(`Import failed: ${err.message}`);
+        }
+    });
 
     const mainContent = document.getElementById('main-content');
     const sidebarContent = document.getElementById('sidebar-content');

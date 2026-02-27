@@ -9,10 +9,12 @@
             <wa-icon name="plus" library="tabler" slot="start"></wa-icon>
             Start Creation
         </wa-button>
+        {{#canDelete}}
         <wa-button variant="danger" size="small" data-id="{{id}}" class="delete-btn" style="width: 100%;">
             <wa-icon name="trash" library="tabler" slot="start"></wa-icon>
             Delete
         </wa-button>
+        {{/canDelete}}
         {{/isGallery}}
         {{#isModal}}
         <wa-button variant="primary" size="small" class="select-image-btn" data-id="{{id}}" style="width: 100%;">

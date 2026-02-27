@@ -34,5 +34,20 @@
                 </wa-button>
             </div>
         </wa-card>
+
+        <wa-card>
+            <div slot="header">
+                <strong>Image Presets</strong>
+            </div>
+            <wa-text>
+                Clear the image preset repository and re-ingest them from the server. Use this if you want to update the images to the most recent state.
+            </wa-text>
+            <div slot="footer">
+                <wa-button id="rebuild-images-btn" variant="warning">
+                    <wa-icon name="refresh" library="tabler" slot="prefix"></wa-icon>
+                    Rebuild Image Preset Repository
+                </wa-button>
+            </div>
+        </wa-card>
     </div>
 </wa-page>

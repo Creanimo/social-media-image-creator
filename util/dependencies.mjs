@@ -12,6 +12,8 @@ export class Dependencies {
     creationRepository;
     /** @type {import('../repository/background-repository.mjs').BackgroundRepository} */
     backgroundRepository;
+    /** @type {import('../repository/image-preset-repository.mjs').ImagePresetRepository} */
+    imagePresetRepository;
     /** @type {import('./image-url-manager.mjs').ImageUrlManager} */
     imageUrlManager;
     /** @type {import('./preferences.mjs').Preferences} */
@@ -24,15 +26,17 @@ export class Dependencies {
      * @param {import('../repository/image-repository.mjs').ImageRepository} [deps.imageRepository]
      * @param {import('../repository/creation-repository.mjs').CreationRepository} [deps.creationRepository]
      * @param {import('../repository/background-repository.mjs').BackgroundRepository} [deps.backgroundRepository]
+     * @param {import('../repository/image-preset-repository.mjs').ImagePresetRepository} [deps.imagePresetRepository]
      * @param {import('./image-url-manager.mjs').ImageUrlManager} [deps.imageUrlManager]
      * @param {import('./preferences.mjs').Preferences} [deps.preferences]
      */
-    constructor({ idGenerator, database, imageRepository, creationRepository, backgroundRepository, imageUrlManager, preferences } = {}) {
+    constructor({ idGenerator, database, imageRepository, creationRepository, backgroundRepository, imagePresetRepository, imageUrlManager, preferences } = {}) {
         this.idGenerator = idGenerator;
         this.database = database;
         this.imageRepository = imageRepository;
         this.creationRepository = creationRepository;
         this.backgroundRepository = backgroundRepository;
+        this.imagePresetRepository = imagePresetRepository;
         this.imageUrlManager = imageUrlManager;
         this.preferences = preferences;
     }

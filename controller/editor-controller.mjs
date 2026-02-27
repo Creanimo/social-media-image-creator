@@ -1,5 +1,5 @@
 import { EditorView } from '../view/editor-view.mjs';
-import { ImageService } from '../util/image-service.mjs';
+import { ImageService } from '../service/image-service.mjs';
 import { Creation } from '../model/creation.mjs';
 import { FontLayer } from '../model/font-layer.mjs';
 import { IconLayer } from '../model/icon-layer.mjs';
@@ -12,14 +12,15 @@ import { IconPickerView } from '../view/icon-picker-view.mjs';
 import { ColorPickerController } from './color-picker-controller.mjs';
 import { ColorPickerView } from '../view/color-picker-view.mjs';
 import { GalleryFlow } from './gallery-flow.mjs';
-import { LayerFormRegistry } from '../util/layer-form-registry.mjs';
-import { FontLayerFormAdapter } from '../util/layer-form-adapters/font-layer-form-adapter.mjs';
-import { IconLayerFormAdapter } from '../util/layer-form-adapters/icon-layer-form-adapter.mjs';
-import { IconCalloutLayerFormAdapter } from '../util/layer-form-adapters/icon-callout-layer-form-adapter.mjs';
-import { ImageLayerFormAdapter } from '../util/layer-form-adapters/image-layer-form-adapter.mjs';
-import { LayerFactory } from '../util/layer-factory.mjs';
-import { ExportPipeline } from '../util/export-pipeline.mjs';
+import { LayerFormRegistry } from '../adapter/layer-form-registry.mjs';
+import { FontLayerFormAdapter } from '../adapter/layer-form-adapters/font-layer-form-adapter.mjs';
+import { IconLayerFormAdapter } from '../adapter/layer-form-adapters/icon-layer-form-adapter.mjs';
+import { IconCalloutLayerFormAdapter } from '../adapter/layer-form-adapters/icon-callout-layer-form-adapter.mjs';
+import { ImageLayerFormAdapter } from '../adapter/layer-form-adapters/image-layer-form-adapter.mjs';
+import { LayerFactory } from '../service/layer-factory.mjs';
+import { ExportAsImage } from '../service/export-as-image.mjs';
 import { LivePreviewPipeline } from './live-preview-pipeline.mjs';
+import { ExportAsJson } from '../service/export-as-json.mjs';
 
 export class EditorController {
     #deps;
@@ -143,7 +144,8 @@ export class EditorController {
         if (fullRefresh) {
             const uploadedImages = await this.#deps.imageRepository.getAll(this.#deps);
             const presetBackgrounds = await this.#deps.backgroundRepository.getAll();
-            const allImages = [...uploadedImages, ...presetBackgrounds];
+            const imagePresets = await this.#deps.imagePresetRepository.getAll();
+            const allImages = [...uploadedImages, ...presetBackgrounds, ...imagePresets];
 
             let bgSrc = null;
             if (this.#currentCreation?.backgroundImageId) {
@@ -158,6 +160,7 @@ export class EditorController {
                 bgSrc,
                 uploadedImages,
                 presetBackgrounds,
+                imagePresets,
                 allImages,
                 fontStyles: this.#fontStyleController.getStyles(),
                 fontStyleUrls: this.#fontStyleController.getUrls(),
@@ -185,13 +188,15 @@ export class EditorController {
             }
             const uploadedImages = await this.#deps.imageRepository.getAll(this.#deps);
             const presetBackgrounds = await this.#deps.backgroundRepository.getAll();
-            const allImages = [...uploadedImages, ...presetBackgrounds];
+            const imagePresets = await this.#deps.imagePresetRepository.getAll();
+            const allImages = [...uploadedImages, ...presetBackgrounds, ...imagePresets];
 
             const renderData = {
                 presets: this.#presets,
                 bgSrc,
                 uploadedImages,
                 presetBackgrounds,
+                imagePresets,
                 allImages,
                 fontStyles: this.#fontStyleController.getStyles(),
                 fontStyleUrls: this.#fontStyleController.getUrls(),
@@ -428,7 +433,7 @@ export class EditorController {
                     throw new Error('Canvas element not found in iframe');
                 }
 
-                const blob = await ExportPipeline.exportAsPng(canvasEl);
+                const blob = await ExportAsImage.exportAsPng(canvasEl);
 
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -441,6 +446,21 @@ export class EditorController {
             } catch (error) {
                 console.error('Export failed:', error);
                 alert('Export failed. Please check the console for details.');
+            } finally {
+                btn.loading = false;
+            }
+        });
+
+        // Export JSON
+        container.querySelector('#export-json-btn')?.addEventListener('click', async () => {
+            const btn = container.querySelector('#export-json-btn');
+            btn.loading = true;
+            try {
+                const exporter = new ExportAsJson(this.#deps);
+                await exporter.downloadExport(this.#currentCreation.id);
+            } catch (error) {
+                console.error('JSON Export failed:', error);
+                alert(`Export failed: ${error.message}`);
             } finally {
                 btn.loading = false;
             }

@@ -20,7 +20,7 @@ export class ImageService {
     }
 
     /**
-     * Fetches an image by ID from either the image or background repository.
+     * Fetches an image by ID from either the image, background or image preset repository.
      * @param {Dependencies} deps
      * @param {string} id
      * @returns {Promise<Object|null>}
@@ -29,6 +29,9 @@ export class ImageService {
         let img = await deps.imageRepository.get(id, deps);
         if (!img) {
             img = await deps.backgroundRepository.get(id);
+        }
+        if (!img) {
+            img = await deps.imagePresetRepository.get(id);
         }
         return img;
     }

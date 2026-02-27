@@ -1,5 +1,6 @@
 import { SettingsView } from '../view/settings-view.mjs';
 import { BackgroundIngestController } from './background-ingest-controller.mjs';
+import { ImagePresetIngestController } from './image-preset-ingest-controller.mjs';
 
 export class SettingsController {
     #deps;
@@ -41,6 +42,19 @@ export class SettingsController {
                 await ingestController.ingest();
                 
                 alert('Background repository has been rebuilt.');
+            }
+        });
+
+        container.querySelector('#rebuild-images-btn')?.addEventListener('click', async () => {
+            if (confirm('Are you sure you want to rebuild the image preset repository?')) {
+                // Clear the image_presets store
+                await this.#deps.database.clearStore('image_presets');
+                
+                // Re-ingest
+                const ingestController = new ImagePresetIngestController(this.#deps);
+                await ingestController.ingest();
+                
+                alert('Image preset repository has been rebuilt.');
             }
         });
     }

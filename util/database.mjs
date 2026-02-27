@@ -58,6 +58,11 @@ export class Database {
         if (!db.objectStoreNames.contains('backgrounds')) {
             db.createObjectStore('backgrounds', { keyPath: 'id' });
         }
+
+        // Preset images store
+        if (!db.objectStoreNames.contains('image_presets')) {
+            db.createObjectStore('image_presets', { keyPath: 'id' });
+        }
     }
 
     /**

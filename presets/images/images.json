@@ -1,0 +1,14 @@
+{
+  "images": [
+    {
+      "id": "volt-logo-dark",
+      "name": "Volt Logo Dark",
+      "filename": "volt-logo_dark.png"
+    },
+    {
+      "id": "volt-logo-light",
+      "name": "Volt Logo Light",
+      "filename": "volt-logo_light.png"
+    }
+  ]
+}

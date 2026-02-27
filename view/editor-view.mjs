@@ -105,7 +105,7 @@ export class EditorView {
      * @param {Array} data.calloutStyles
      * @param {Array} data.calloutStyleUrls
      */
-    render(creation, { presets = [], bgSrc = null, uploadedImages = [], presetBackgrounds = [], allImages = [], fontStyles = [], fontStyleUrls = [], calloutStyles = [], calloutStyleUrls = [] } = {}) {
+    render(creation, { presets = [], bgSrc = null, uploadedImages = [], presetBackgrounds = [], imagePresets = [], allImages = [], fontStyles = [], fontStyleUrls = [], calloutStyles = [], calloutStyleUrls = [] } = {}) {
         const viewData = this.#prepareViewData(creation, { presets, bgSrc, presetBackgrounds, allImages, fontStyles, fontStyleUrls, calloutStyles, calloutStyleUrls });
 
         const renderedMain = Mustache.render(this.#template, viewData);
@@ -130,7 +130,7 @@ export class EditorView {
 
         // Render modal if requested
         if (uploadedImages.length >= 0) {
-            this.renderGalleryModal(uploadedImages, presetBackgrounds);
+            this.renderGalleryModal(uploadedImages, presetBackgrounds, imagePresets);
             this.renderAddLayerModal();
         }
     }
@@ -253,8 +253,9 @@ export class EditorView {
     /**
      * @param {Array} images 
      * @param {Array} presetBackgrounds
+     * @param {Array} imagePresets
      */
-    renderGalleryModal(images, presetBackgrounds = []) {
+    renderGalleryModal(images, presetBackgrounds = [], imagePresets = []) {
         const modalContainer = this.#container.querySelector('#modal-container');
         if (!modalContainer) return;
 
@@ -269,14 +270,24 @@ export class EditorView {
             isModal: true
         }));
 
-        const mappedPresets = presetBackgrounds.map(bg => ({
-            ...bg,
-            src: this.#urlManager.getUrl(bg.id, bg.imageBlob),
-            category: 'background',
-            source: 'pre-made',
-            isBackground: true,
-            isModal: true
-        }));
+        const mappedPresets = [
+            ...presetBackgrounds.map(bg => ({
+                ...bg,
+                src: this.#urlManager.getUrl(bg.id, bg.imageBlob),
+                category: 'background',
+                source: 'pre-made',
+                isBackground: true,
+                isModal: true
+            })),
+            ...imagePresets.map(preset => ({
+                ...preset,
+                src: this.#urlManager.getUrl(preset.id, preset.imageBlob),
+                category: 'image',
+                source: 'pre-made',
+                isImage: true,
+                isModal: true
+            }))
+        ];
 
         const renderedModal = Mustache.render(this.#modalTemplate, { 
             images: [...mappedImages, ...mappedPresets]

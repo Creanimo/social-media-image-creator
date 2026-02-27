@@ -1,5 +1,5 @@
 import { GalleryComponent } from '../view/gallery-component.mjs';
-import { ImageService } from '../util/image-service.mjs';
+import { ImageService } from '../service/image-service.mjs';
 import { CategoryUtils } from '../util/category-utils.mjs';
 
 /**
@@ -54,26 +54,32 @@ export class GalleryFlow {
 
         const uploadedImages = await this.#deps.imageRepository.getAll(this.#deps);
         const presetBackgrounds = await this.#deps.backgroundRepository.getAll();
+        const imagePresets = await this.#deps.imagePresetRepository.getAll();
 
         const mapUploaded = img => ({
             id: img.id,
             src: this.#deps.imageUrlManager.getUrl(img.id, img.imageBlob),
             category: img.category,
-            source: 'my-uploads'
+            source: 'my-uploads',
+            canDelete: true
         });
 
-        const mapPreset = bg => ({
+        const mapPreset = (bg, category = 'background') => ({
             ...bg,
             src: this.#deps.imageUrlManager.getUrl(bg.id, bg.imageBlob),
-            category: 'background',
-            source: 'pre-made'
+            category: category,
+            source: 'pre-made',
+            canDelete: false
         });
 
         const backgrounds = [
             ...uploadedImages.filter(img => img.category === 'background').map(mapUploaded),
-            ...presetBackgrounds.map(mapPreset)
+            ...presetBackgrounds.map(bg => mapPreset(bg, 'background'))
         ];
-        const images = uploadedImages.filter(img => img.category === 'image').map(mapUploaded);
+        const images = [
+            ...uploadedImages.filter(img => img.category === 'image').map(mapUploaded),
+            ...imagePresets.map(preset => mapPreset(preset, 'image'))
+        ];
 
         await this.#gallery.render({
             backgrounds: backgrounds,
