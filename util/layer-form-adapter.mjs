@@ -17,6 +17,14 @@ export class LayerFormAdapter {
      * @returns {Layer} The updated layer instance.
      */
     extractUpdated(layer, sidebar, index) {
-        throw new Error('Not implemented');
+        if (layer.type === 'font' || layer.type === 'icon-callout') {
+            return layer;
+        }
+        const nameValue = sidebar.querySelector(`wa-input[name="layer-${index}-name"]`)?.value;
+        let updatedLayer = layer;
+        if (nameValue !== undefined && nameValue !== layer.name) {
+            updatedLayer = updatedLayer.withName(nameValue);
+        }
+        return updatedLayer;
     }
 }

@@ -9,8 +9,11 @@ export class FontLayerFormAdapter extends LayerFormAdapter {
     }
 
     extractUpdated(layer, sidebar, index) {
-        const fontText = sidebar.querySelector(`wa-textarea[name="layer-${index}-text"]`)?.value || '';
+        let updatedLayer = super.extractUpdated(layer, sidebar, index);
+
+        const fontText = sidebar.querySelector(`wa-input[name="layer-${index}-name"]`)?.value || '';
         const html = fontText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/\n/g, '<br>');
+        const cappedName = fontText.substring(0, 30);
         
         const slotValue = sidebar.querySelector(`wa-select[name="layer-${index}-slot"]`)?.value;
         const styleIdValue = sidebar.querySelector(`wa-select[name="layer-${index}-styleId"]`)?.value;
@@ -21,10 +24,9 @@ export class FontLayerFormAdapter extends LayerFormAdapter {
         const offsetXValue = parseInt(sidebar.querySelector(`wa-slider[name="layer-${index}-offsetX"]`)?.value);
         const offsetYValue = parseInt(sidebar.querySelector(`wa-slider[name="layer-${index}-offsetY"]`)?.value);
         
-        let updatedLayer = layer;
         if (slotValue !== undefined) updatedLayer = updatedLayer.withSlot(slotValue);
         if (styleIdValue !== undefined) updatedLayer = updatedLayer.withStyleId(styleIdValue);
-        if (fontText !== undefined) updatedLayer = updatedLayer.withText(fontText).withHtml(html);
+        if (fontText !== undefined) updatedLayer = updatedLayer.withText(fontText).withHtml(html).withName(cappedName);
         if (sizeValue !== undefined) updatedLayer = updatedLayer.withSize(sizeValue);
         if (widthValue !== undefined) updatedLayer = updatedLayer.withWidth(widthValue);
         if (!isNaN(offsetXValue)) updatedLayer = updatedLayer.withOffsetX(offsetXValue);

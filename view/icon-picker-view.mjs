@@ -1,12 +1,15 @@
 import Mustache from 'mustache';
+import { Dependencies } from "../util/dependencies.mjs";
 
 export class IconPickerView {
     #template;
     #container;
+    #dependencies;
 
     constructor(container) {
         this.#container = container;
         this.#template = null;
+        this.#dependencies = Dependencies
     }
 
     async loadTemplate() {
@@ -19,7 +22,7 @@ export class IconPickerView {
 
     render(data) {
         const rendered = Mustache.render(this.#template, {
-            id: data.id || Math.random().toString(36).substring(2, 9),
+            id: data.id || this.#dependencies.idGenerator.generate(),
             name: data.name,
             value: data.value || 'photo',
             label: data.label,

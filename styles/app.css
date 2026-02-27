@@ -1,0 +1,12 @@
+wa-page {
+    > nav > ul {
+        list-style-type: none;
+        > li {
+            margin: 0;
+            margin-bottom: 10px;
+            wa-icon {
+                font-size: 24px;
+            }
+        }
+    }
+}

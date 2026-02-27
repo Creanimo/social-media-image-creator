@@ -39,8 +39,7 @@ export class EditorController {
         this.#fontStyleController = new FontStyleController();
         this.#calloutStyleController = new CalloutStyleController();
 
-        const modal = container.querySelector('#gallery-modal');
-        this.#galleryFlow = new GalleryFlow(this.#deps, modal);
+        this.#galleryFlow = null;
 
         this.#formRegistry = new LayerFormRegistry()
             .register(new FontLayerFormAdapter())
@@ -141,38 +140,64 @@ export class EditorController {
     }
 
     async #updateView(fullRefresh = true) {
-        if (this.#galleryFlow) {
-            await this.#galleryFlow.refresh();
-        }
-        let bgSrc = null;
-        if (this.#currentCreation?.backgroundImageId) {
-            const img = await ImageService.getImage(this.#deps, this.#currentCreation.backgroundImageId);
-            if (img) {
-                bgSrc = this.#deps.imageUrlManager.getUrl(img.id, img.imageBlob);
-            }
-        }
-
-        const uploadedImages = await this.#deps.imageRepository.getAll(this.#deps);
-        const presetBackgrounds = await this.#deps.backgroundRepository.getAll();
-        
-        const allImages = [...uploadedImages, ...presetBackgrounds];
-
-        const renderData = {
-            presets: this.#presets,
-            bgSrc,
-            uploadedImages,
-            presetBackgrounds,
-            allImages,
-            fontStyles: this.#fontStyleController.getStyles(),
-            fontStyleUrls: this.#fontStyleController.getUrls(),
-            calloutStyles: this.#calloutStyleController.getStyles(),
-            calloutStyleUrls: this.#calloutStyleController.getUrls()
-        };
-
         if (fullRefresh) {
+            const uploadedImages = await this.#deps.imageRepository.getAll(this.#deps);
+            const presetBackgrounds = await this.#deps.backgroundRepository.getAll();
+            const allImages = [...uploadedImages, ...presetBackgrounds];
+
+            let bgSrc = null;
+            if (this.#currentCreation?.backgroundImageId) {
+                const img = allImages.find(i => i.id === this.#currentCreation.backgroundImageId);
+                if (img) {
+                    bgSrc = this.#deps.imageUrlManager.getUrl(img.id, img.imageBlob);
+                }
+            }
+
+            const renderData = {
+                presets: this.#presets,
+                bgSrc,
+                uploadedImages,
+                presetBackgrounds,
+                allImages,
+                fontStyles: this.#fontStyleController.getStyles(),
+                fontStyleUrls: this.#fontStyleController.getUrls(),
+                calloutStyles: this.#calloutStyleController.getStyles(),
+                calloutStyleUrls: this.#calloutStyleController.getUrls()
+            };
+
             this.#view.render(this.#currentCreation, renderData);
+            
+            // Initialize GalleryFlow now that the modal is rendered
+            const modal = this.#view.container.querySelector('#gallery-modal');
+            if (modal) {
+                this.#galleryFlow = new GalleryFlow(this.#deps, modal);
+                await this.#galleryFlow.refresh();
+            }
+
             await this.#bindEvents();
         } else {
+            let bgSrc = null;
+            if (this.#currentCreation?.backgroundImageId) {
+                const img = await ImageService.getImage(this.#deps, this.#currentCreation.backgroundImageId);
+                if (img) {
+                    bgSrc = this.#deps.imageUrlManager.getUrl(img.id, img.imageBlob);
+                }
+            }
+            const uploadedImages = await this.#deps.imageRepository.getAll(this.#deps);
+            const presetBackgrounds = await this.#deps.backgroundRepository.getAll();
+            const allImages = [...uploadedImages, ...presetBackgrounds];
+
+            const renderData = {
+                presets: this.#presets,
+                bgSrc,
+                uploadedImages,
+                presetBackgrounds,
+                allImages,
+                fontStyles: this.#fontStyleController.getStyles(),
+                fontStyleUrls: this.#fontStyleController.getUrls(),
+                calloutStyles: this.#calloutStyleController.getStyles(),
+                calloutStyleUrls: this.#calloutStyleController.getUrls()
+            };
             this.#view.renderCanvas(this.#currentCreation, renderData);
         }
     }
@@ -191,6 +216,23 @@ export class EditorController {
                 }
             }
             return iframe;
+        };
+
+        let autoSaveTimeout = null;
+        const debouncedAutoSave = (delay = 1000) => {
+            if (autoSaveTimeout) clearTimeout(autoSaveTimeout);
+            autoSaveTimeout = setTimeout(() => {
+                submitForm({ skipRender: true });
+            }, delay);
+        };
+
+        let livePreviewTimeout = null;
+        const debouncedLivePreview = (name, value, delay = 50) => {
+            if (livePreviewTimeout) clearTimeout(livePreviewTimeout);
+            livePreviewTimeout = setTimeout(() => {
+                const pipeline = new LivePreviewPipeline(getIframe(), sidebar);
+                pipeline.sendUpdate(name, value);
+            }, delay);
         };
 
         // Form submission / Auto-save
@@ -220,18 +262,11 @@ export class EditorController {
 
             // Handle Layers
             const updatedLayers = this.#currentCreation.layers.map((layer, index) => {
-                const nameValue = sidebar.querySelector(`wa-input[name="layer-${index}-name"]`)?.value;
-                let updatedLayer = layer;
-                if (nameValue !== undefined && nameValue !== layer.name) {
-                    updatedLayer = updatedLayer.withName(nameValue);
-                }
-
                 const adapter = this.#formRegistry.get(layer.type);
                 if (adapter) {
-                    return adapter.extractUpdated(updatedLayer, sidebar, index);
+                    return adapter.extractUpdated(layer, sidebar, index);
                 }
-
-                return updatedLayer;
+                return layer;
             });
 
             const width = parseInt(widthValue);
@@ -290,17 +325,14 @@ export class EditorController {
                 }
             });
 
-            // Use 'input' event for sliders to have live preview during dragging
-            if (el.tagName === 'WA-SLIDER') {
+            // Use 'input' event for sliders and size input to have live preview during dragging/typing
+            if (el.tagName === 'WA-SLIDER' || (el.tagName === 'WA-INPUT' && el.name.includes('-size'))) {
                 const liveUpdateHandler = (e) => {
                     const pipeline = new LivePreviewPipeline(getIframe(), sidebar);
                     pipeline.sendUpdate(e.target.name, e.target.value);
                 };
 
                 el.addEventListener('input', liveUpdateHandler);
-                
-                // For the width slider, we also want to trigger submitForm on change (end of drag)
-                // but submitForm with skipRender: true is already called for all sliders in the 'change' listener above.
             }
 
             if (el.tagName === 'WA-INPUT' || el.tagName === 'WA-TEXTAREA') {
@@ -308,16 +340,27 @@ export class EditorController {
                 el.addEventListener('blur', () => {
                     const isSizeInput = el.name.includes('-size');
                     const isNameInput = el.name.includes('-name');
-                    submitForm({ skipRender: isSizeInput || isNameInput });
+                    const isTextInput = el.tagName === 'WA-TEXTAREA';
+                    submitForm({ skipRender: isSizeInput || isNameInput || isTextInput });
                 });
                 
-                // For regular inputs, input is also useful for real-time
-                if (el.tagName === 'WA-INPUT' && el.name.includes('-size')) {
-                     const liveSizeHandler = (e) => {
-                         const pipeline = new LivePreviewPipeline(getIframe(), sidebar);
-                         pipeline.sendUpdate(e.target.name, e.target.value);
-                     };
-                     el.addEventListener('input', liveSizeHandler);
+                if (el.tagName === 'WA-INPUT' && el.name.includes('-name')) {
+                    const liveNameHandler = (e) => {
+                        const index = parseInt(e.target.name.split('-')[1]);
+                        const layer = this.#currentCreation.layers[index];
+                        if (layer instanceof FontLayer || layer instanceof IconCalloutLayer) {
+                            debouncedLivePreview(e.target.name, e.target.value);
+                            debouncedAutoSave();
+                        }
+                    };
+                    el.addEventListener('input', liveNameHandler);
+                }
+
+                if (el.tagName === 'WA-TEXTAREA') {
+                    el.addEventListener('input', (e) => {
+                        debouncedLivePreview(e.target.name, e.target.value);
+                        debouncedAutoSave();
+                    });
                 }
             }
         });
@@ -416,13 +459,15 @@ export class EditorController {
                 const type = btn.getAttribute('data-type');
                 if (type === 'image') {
                     addLayerModal.open = false;
-                    await this.#galleryFlow.open(['images'], 'layer', async ({ id }) => {
-                        const newLayer = await LayerFactory.createFromPreset('image', this.#deps);
-                        const updatedLayer = newLayer.withImageId(id);
-                        this.#currentCreation = this.#currentCreation.addLayer(updatedLayer);
-                        await this.#deps.creationRepository.save(this.#currentCreation);
-                        await this.#updateView();
-                    });
+                    if (this.#galleryFlow) {
+                        await this.#galleryFlow.open(['images'], 'layer', async ({ id }) => {
+                            const newLayer = await LayerFactory.createFromPreset('image', this.#deps);
+                            const updatedLayer = newLayer.withImageId(id);
+                            this.#currentCreation = this.#currentCreation.addLayer(updatedLayer);
+                            await this.#deps.creationRepository.save(this.#currentCreation);
+                            await this.#updateView();
+                        });
+                    }
                     return;
                 }
                 
@@ -515,22 +560,26 @@ export class EditorController {
 
         // Background: Open Gallery
         sidebar.querySelector('#open-gallery-btn')?.addEventListener('click', async () => {
-            await this.#galleryFlow.open(['backgrounds'], 'background', async ({ id }) => {
-                this.#currentCreation = await ImageService.addImageToCreation(this.#deps, this.#currentCreation, id, 'background');
-                await this.#deps.creationRepository.save(this.#currentCreation);
-                await this.#updateView();
-            });
+            if (this.#galleryFlow) {
+                await this.#galleryFlow.open(['backgrounds'], 'background', async ({ id }) => {
+                    this.#currentCreation = await ImageService.addImageToCreation(this.#deps, this.#currentCreation, id, 'background');
+                    await this.#deps.creationRepository.save(this.#currentCreation);
+                    await this.#updateView();
+                });
+            }
         });
 
         // Add Image Layer: Open Gallery
         sidebar.querySelector('#add-image-layer-btn')?.addEventListener('click', async () => {
-            await this.#galleryFlow.open(['images'], 'layer', async ({ id }) => {
-                const newLayer = await LayerFactory.createFromPreset('image', this.#deps);
-                const updatedLayer = newLayer.withImageId(id);
-                this.#currentCreation = this.#currentCreation.addLayer(updatedLayer);
-                await this.#deps.creationRepository.save(this.#currentCreation);
-                await this.#updateView();
-            });
+            if (this.#galleryFlow) {
+                await this.#galleryFlow.open(['images'], 'layer', async ({ id }) => {
+                    const newLayer = await LayerFactory.createFromPreset('image', this.#deps);
+                    const updatedLayer = newLayer.withImageId(id);
+                    this.#currentCreation = this.#currentCreation.addLayer(updatedLayer);
+                    await this.#deps.creationRepository.save(this.#currentCreation);
+                    await this.#updateView();
+                });
+            }
         });
 
         // Background: Upload

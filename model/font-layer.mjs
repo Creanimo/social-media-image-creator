@@ -34,7 +34,7 @@ export class FontLayer extends Layer {
         this.slot = data.slot || 'center-middle';
         this.styleId = data.styleId || '';
         this.text = data.text || '';
-        this.html = data.html || '';
+        this.html = data.html || this.text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/\n/g, '<br>');
         this.size = data.size !== undefined ? data.size : null;
         this.width = data.width !== undefined ? data.width : null;
         this.offsetX = data.offsetX || 0;

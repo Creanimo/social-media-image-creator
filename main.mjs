@@ -55,14 +55,18 @@ async function init() {
         'header': '<h1>Social Media Image Creator</h1>',
         'main-navigation': `
             <ul>
-                <li><a href="#gallery">Gallery</a></li>
-                <li><a href="#creations">My Creations</a></li>
-                <li><a href="#editor">Editor</a></li>
-                <li><a href="#font-styles">Font Styles</a></li>
-                <li><a href="#settings">Settings</a></li>
+                <li>
+                    <a class="wa-flank wa-align-items-start" href="#editor"><wa-icon name="photo-edit" library="tabler"></wa-icon><span>Editor</span></a>
+                </li>
+                <li>
+                    <a class="wa-flank wa-align-items-start" href="#creations"><wa-icon name="library-photo" library="tabler"></wa-icon><span>My Creations</span></a>
+                </li>
+                <li><a class="wa-flank wa-align-items-start" href="#gallery"><wa-icon name="cloud-upload"" library="tabler"></wa-icon><span>Uploaded Images</span></a></li>
+                <li><a class="wa-flank wa-align-items-start" href="#font-styles"><wa-icon name="typography" library="tabler"></wa-icon><span>Font Styles</span></a></li>
+                <li><a class="wa-flank wa-align-items-start" href="#settings"><wa-icon name="settings" library="tabler"></wa-icon><span>Settings</span></a></li>
             </ul>
         `,
-        'sidebar': '<div id="sidebar-content">Settings</div>',
+        'sidebar': '<div id="sidebar-content"></div>',
         'content': '<div id="main-content">Loading...</div>'
     };
 

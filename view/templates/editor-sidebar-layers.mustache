@@ -5,7 +5,7 @@
     {{#layers}}
     <wa-details class="layer-item" data-index="{{index}}">
         <div slot="summary" style="display: flex; align-items: center; gap: 10px; width: 100%;">
-            <wa-input name="layer-{{index}}-name" value="{{name}}" size="small" style="flex: 1;" onclick="event.stopPropagation();" onkeydown="if (event.key === ' ') event.stopPropagation();"></wa-input>
+            <wa-input name="layer-{{index}}-name" value="{{name}}" size="small" onclick="event.stopPropagation();" onkeydown="if (event.key === ' ') event.stopPropagation();" style="flex: 1;"></wa-input>
             <wa-text size="x-small" style="opacity: 0.5; white-space: nowrap;">({{type}})</wa-text>
             {{#hasMultipleInSlot}}
             <div class="wa-cluster" style="gap: 5px;">
@@ -56,7 +56,7 @@
     {{/filledSlots}}
     
     <div class="wa-cluster" style="gap: 10px;">
-        <wa-button id="add-layer-btn" variant="primary" style="flex: 1;">
+        <wa-button id="add-layer-btn" variant="primary">
             <wa-icon name="plus" library="tabler" slot="prefix"></wa-icon>
             Add Layer
         </wa-button>

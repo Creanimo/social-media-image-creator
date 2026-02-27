@@ -9,7 +9,7 @@
   "layers": [
     {
       "type": "font",
-      "name": "Headline",
+      "name": "Your Text Here",
       "visible": true,
       "slot": "center-middle",
       "styleId": "headline-largest",

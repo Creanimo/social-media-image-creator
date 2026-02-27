@@ -9,6 +9,7 @@ export class IconLayerFormAdapter extends LayerFormAdapter {
     }
 
     extractUpdated(layer, sidebar, index) {
+        let updatedLayer = super.extractUpdated(layer, sidebar, index);
         const iconValue = sidebar.querySelector(`input[name="layer-${index}-icon"]`)?.value || 'photo';
         const colorValue = sidebar.querySelector(`input[name="layer-${index}-color"]`)?.value || '#000000';
         const slotValue = sidebar.querySelector(`wa-select[name="layer-${index}-slot"]`)?.value;
@@ -17,7 +18,6 @@ export class IconLayerFormAdapter extends LayerFormAdapter {
         const offsetXValue = parseInt(sidebar.querySelector(`wa-slider[name="layer-${index}-offsetX"]`)?.value);
         const offsetYValue = parseInt(sidebar.querySelector(`wa-slider[name="layer-${index}-offsetY"]`)?.value);
 
-        let updatedLayer = layer;
         if (slotValue !== undefined) updatedLayer = updatedLayer.withSlot(slotValue);
         if (iconValue !== undefined) updatedLayer = updatedLayer.withIcon(iconValue);
         if (colorValue !== undefined) updatedLayer = updatedLayer.withColor(colorValue);

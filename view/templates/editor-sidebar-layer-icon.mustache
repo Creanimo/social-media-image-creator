@@ -22,15 +22,15 @@
     </div>
 
     <div class="wa-flank:end">
-        <wa-slider class="layer-slider" data-index="{{index}}" data-type="offsetX" label="Offset X" name="layer-{{index}}-offsetX" value="{{offsetX}}" min="-{{creation.width}}" max="{{creation.width}}" step="1" with-tooltip style="flex: 1;"></wa-slider>
-        <wa-button variant="neutral" circle size="small" class="reset-slider-btn" data-target="layer-{{index}}-offsetX" data-default="0" style="margin-top: 25px;">
-            <wa-icon name="rotate-ccw" library="tabler"></wa-icon>
+        <wa-slider class="layer-slider" data-index="{{index}}" data-type="offsetX" label="Offset X" name="layer-{{index}}-offsetX" value="{{offsetX}}" min="-{{creation.width}}" max="{{creation.width}}" step="1" with-tooltip></wa-slider>
+        <wa-button variant="neutral" appearance="plain" class="reset-slider-btn" data-target="layer-{{index}}-offsetX" data-default="0">
+            <wa-icon name="reset" library="tabler"></wa-icon>
         </wa-button>
     </div>
     <div class="wa-flank:end">
-        <wa-slider class="layer-slider" data-index="{{index}}" data-type="offsetY" label="Offset Y" name="layer-{{index}}-offsetY" value="{{offsetY}}" min="-{{creation.height}}" max="{{creation.height}}" step="1" with-tooltip style="flex: 1;"></wa-slider>
-        <wa-button variant="neutral" circle size="small" class="reset-slider-btn" data-target="layer-{{index}}-offsetY" data-default="0" style="margin-top: 25px;">
-            <wa-icon name="rotate-ccw" library="tabler"></wa-icon>
+        <wa-slider class="layer-slider" data-index="{{index}}" data-type="offsetY" label="Offset Y" name="layer-{{index}}-offsetY" value="{{offsetY}}" min="-{{creation.height}}" max="{{creation.height}}" step="1" with-tooltip></wa-slider>
+        <wa-button variant="neutral" appearance="plain" class="reset-slider-btn" data-target="layer-{{index}}-offsetY" data-default="0">
+            <wa-icon name="reset" library="tabler"></wa-icon>
         </wa-button>
     </div>
 </div>

@@ -9,8 +9,10 @@ export class IconCalloutLayerFormAdapter extends LayerFormAdapter {
     }
 
     extractUpdated(layer, sidebar, index) {
-        const fontText = sidebar.querySelector(`wa-textarea[name="layer-${index}-text"]`)?.value || '';
+        let updatedLayer = super.extractUpdated(layer, sidebar, index);
+        const fontText = sidebar.querySelector(`wa-input[name="layer-${index}-name"]`)?.value || '';
         const html = fontText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/\n/g, '<br>');
+        const cappedName = fontText.substring(0, 30);
 
         const iconValue = sidebar.querySelector(`input[name="layer-${index}-icon"]`)?.value || 'info-circle';
         const colorValue = sidebar.querySelector(`input[name="layer-${index}-color"]`)?.value || '#000000';
@@ -23,10 +25,9 @@ export class IconCalloutLayerFormAdapter extends LayerFormAdapter {
         const offsetXValue = parseInt(sidebar.querySelector(`wa-slider[name="layer-${index}-offsetX"]`)?.value);
         const offsetYValue = parseInt(sidebar.querySelector(`wa-slider[name="layer-${index}-offsetY"]`)?.value);
 
-        let updatedLayer = layer;
         if (slotValue !== undefined) updatedLayer = updatedLayer.withSlot(slotValue);
         if (styleIdValue !== undefined) updatedLayer = updatedLayer.withStyleId(styleIdValue);
-        if (fontText !== undefined) updatedLayer = updatedLayer.withText(fontText).withHtml(html);
+        if (fontText !== undefined) updatedLayer = updatedLayer.withText(fontText).withHtml(html).withName(cappedName);
         if (iconValue !== undefined) updatedLayer = updatedLayer.withIcon(iconValue);
         if (colorValue !== undefined) updatedLayer = updatedLayer.withColor(colorValue);
         if (sizeValue !== undefined) updatedLayer = updatedLayer.withSize(sizeValue);

@@ -39,7 +39,7 @@ export class IconCalloutLayer extends Layer {
         this.styleId = data.styleId || '';
         this.icon = (data.icon || 'info-circle').replace('tabler:', '');
         this.text = data.text || '';
-        this.html = data.html || '';
+        this.html = data.html || this.text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/\n/g, '<br>');
         this.size = data.size !== undefined ? data.size : 24;
         this.width = data.width !== undefined ? data.width : null;
         this.offsetX = data.offsetX || 0;

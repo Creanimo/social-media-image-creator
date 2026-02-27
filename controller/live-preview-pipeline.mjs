@@ -25,14 +25,30 @@ export class LivePreviewPipeline {
                 y: parseInt(ySlider?.value)
             });
         } else if (name.startsWith('layer-')) {
-            const match = name.match(/layer-(\d+)-(offsetX|offsetY|size|color|width)/);
+            const match = name.match(/layer-(\d+)-(offsetX|offsetY|size|color|width|text|name)/);
             if (match) {
                 const index = parseInt(match[1]);
+                const field = match[2];
                 const offsetXSlider = this.#sidebar.querySelector(`wa-slider[name="layer-${index}-offsetX"]`);
                 const offsetYSlider = this.#sidebar.querySelector(`wa-slider[name="layer-${index}-offsetY"]`);
                 const sizeInput = this.#sidebar.querySelector(`wa-input[name="layer-${index}-size"]`);
                 const colorInput = this.#sidebar.querySelector(`input[name="layer-${index}-color"]`);
                 const widthSlider = this.#sidebar.querySelector(`wa-slider[name="layer-${index}-width"]`);
+                
+                let textValue = undefined;
+                if (field === 'text') {
+                    textValue = this.#sidebar.querySelector(`wa-textarea[name="layer-${index}-text"]`)?.value;
+                } else if (field === 'name') {
+                    textValue = this.#sidebar.querySelector(`wa-input[name="layer-${index}-name"]`)?.value;
+                }
+
+                let html = undefined;
+                if (textValue !== undefined) {
+                    html = textValue
+                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                        .replace(/\n/g, '<br>');
+                }
 
                 this.send('UPDATE_LAYER', {
                     index,
@@ -40,7 +56,8 @@ export class LivePreviewPipeline {
                     offsetY: parseInt(offsetYSlider?.value),
                     size: sizeInput?.value ? parseInt(sizeInput.value) : null,
                     color: colorInput?.value,
-                    width: widthSlider?.value ? parseInt(widthSlider.value) : null
+                    width: widthSlider?.value ? parseInt(widthSlider.value) : null,
+                    html
                 });
             }
         }

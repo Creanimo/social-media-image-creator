@@ -1,7 +1,7 @@
 <div class="icon-picker-container wa-stack" style="gap: 10px;">
     {{#label}}<wa-text size="small"><strong>{{label}}</strong></wa-text>{{/label}}
     <div class="icon-picker-control" style="display: flex; gap: 10px; align-items: center;">
-        <wa-button id="icon-picker-trigger-{{id}}" variant="neutral" style="flex: 1;">
+        <wa-button id="icon-picker-trigger-{{id}}" variant="neutral">
             <wa-icon id="icon-picker-preview-{{id}}" name="{{value}}" library="tabler" slot="prefix"></wa-icon>
             <span id="icon-picker-label-{{id}}">{{value}}</span>
         </wa-button>

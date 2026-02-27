@@ -1,14 +1,14 @@
 {
   "image-sizes": [
     {
-      "name": "square",
-      "width": 1080,
-      "height": 1080
-    },
-    {
       "name": "portrait",
       "width": 1080,
       "height": 1350
+    },
+    {
+      "name": "square",
+      "width": 1080,
+      "height": 1080
     },
     {
       "name": "story",

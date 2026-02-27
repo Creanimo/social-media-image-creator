@@ -13,7 +13,7 @@ const LivePreviewReceiver = {
         }
     },
     UPDATE_LAYER: (data) => {
-        const { index, offsetX, offsetY, size, color, width } = data;
+        const { index, offsetX, offsetY, size, color, width, html } = data;
         const layer = document.querySelector(`[data-index="${index}"]`);
         if (layer) {
             if (offsetX !== undefined || offsetY !== undefined) {
@@ -32,6 +32,18 @@ const LivePreviewReceiver = {
                 if (icon) {
                     icon.style.fontSize = size ? `${size}px` : '';
                 }
+
+                // For icon-layer, the size is also on the first child div
+                const firstChild = layer.querySelector('div');
+                if (firstChild && layer.classList.contains('icon-layer')) {
+                    firstChild.style.fontSize = size ? `${size}px` : '';
+                }
+                
+                // For icon callout text
+                const calloutText = layer.querySelector('.icon-callout-layer__text');
+                if (calloutText) {
+                    calloutText.style.fontSize = size ? `${size}px` : '';
+                }
             }
             if (color !== undefined) {
                 layer.style.color = color;
@@ -39,6 +51,18 @@ const LivePreviewReceiver = {
                 const icon = layer.querySelector('wa-icon');
                 if (icon) {
                     icon.style.color = color;
+                }
+
+                // For icon-layer, the color is also on the first child div
+                const firstChild = layer.querySelector('div');
+                if (firstChild && layer.classList.contains('icon-layer')) {
+                    firstChild.style.color = color;
+                }
+                
+                // For icon callout text
+                const calloutText = layer.querySelector('.icon-callout-layer__text');
+                if (calloutText) {
+                    calloutText.style.color = color;
                 }
             }
             if (width !== undefined) {
@@ -53,6 +77,18 @@ const LivePreviewReceiver = {
                 const img = layer.querySelector('img');
                 if (img) {
                     img.style.width = width ? `${width}px` : '';
+                }
+            }
+            if (html !== undefined) {
+                // For font layers
+                const span = layer.querySelector('span');
+                if (span) {
+                    span.innerHTML = html;
+                }
+                // For icon callout layers
+                const calloutText = layer.querySelector('.icon-callout-layer__text');
+                if (calloutText) {
+                    calloutText.innerHTML = html;
                 }
             }
         }
