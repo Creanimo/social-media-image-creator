@@ -22,4 +22,15 @@ export class Image {
         this.imageBlob = imageBlob;
         this.category = category;
     }
+
+    /**
+     * @returns {Object} Plain data object for storage
+     */
+    toData() {
+        return {
+            id: this.id,
+            imageBlob: this.imageBlob,
+            category: this.category
+        };
+    }
 }

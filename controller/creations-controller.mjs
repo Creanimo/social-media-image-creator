@@ -16,8 +16,11 @@ export class CreationsController {
     }
 
     async refresh() {
-        const creations = await this.#deps.creationRepository.getAll(this.#deps);
-        this.#view.render(creations);
+        const [creations, presets] = await Promise.all([
+            this.#deps.creationRepository.getAll(this.#deps),
+            this.#deps.presetCreationRepository.getAll(this.#deps)
+        ]);
+        this.#view.render(creations, presets);
         this.#bindEvents();
     }
 
@@ -27,9 +30,13 @@ export class CreationsController {
         container.querySelector('#create-new')?.addEventListener('click', async () => {
             const response = await fetch('presets/template-creations/default.json');
             const defaultData = await response.json();
+            
+            // Explicitly remove the preset's ID so that a new one is generated
+            const { id: presetId, ...creationData } = defaultData;
+
             const newCreation = new Creation(
                 null,
-                defaultData,
+                creationData,
                 this.#deps
             );
             await this.#deps.creationRepository.save(newCreation);
@@ -49,6 +56,16 @@ export class CreationsController {
                 if (id) {
                     await this.#deps.creationRepository.delete(id);
                     await this.refresh();
+                }
+            });
+        });
+
+        container.querySelectorAll('.use-preset-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const id = btn.getAttribute('data-id');
+                if (id) {
+                    const newCreation = await this.#deps.imageService.startCreationFromPreset(id);
+                    window.location.hash = `#editor?id=${newCreation.id}`;
                 }
             });
         });

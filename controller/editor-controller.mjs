@@ -121,9 +121,13 @@ export class EditorController {
             // Create a new blank creation if none is selected
             const response = await fetch('/presets/template-creations/default.json');
             const defaultData = await response.json();
+
+            // Explicitly remove the preset's ID so that a new one is generated
+            const { id: presetId, ...creationData } = defaultData;
+
             this.#currentCreation = new Creation(
                 null,
-                defaultData,
+                creationData,
                 this.#deps
             );
             // Save it so it has an ID and we can add a background to it

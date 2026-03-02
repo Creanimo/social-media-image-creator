@@ -72,4 +72,22 @@ export class FontLayer extends Layer {
     withOffsetY(offsetY) {
         return produce(this, draft => { draft.offsetY = offsetY; });
     }
+
+    /**
+     * @returns {Object} Plain data object for storage
+     */
+    toData() {
+        return {
+            ...super.toData(),
+            type: this.type,
+            slot: this.slot,
+            styleId: this.styleId,
+            text: this.text,
+            html: this.html,
+            size: this.size,
+            width: this.width,
+            offsetX: this.offsetX,
+            offsetY: this.offsetY
+        };
+    }
 }

@@ -19,19 +19,10 @@ export class CreationRepository extends BaseRepository {
      * @returns {Promise<void>}
      */
     async save(creation) {
-        // Convert to plain object for IndexedDB
-        const data = { ...creation };
-        
-        // Handle layers specifically if they exist
-        if (data.layers) {
-            data.layers = data.layers.map(layer => {
-                const plainLayer = { ...layer };
-                // Ensure we don't store the immerable symbol or other non-plain data if any
-                delete plainLayer[Symbol.for('immerable')]; 
-                return plainLayer;
-            });
-        }
-        
+        // Use the model's own toData() method to get a clean, serializable object.
+        // This ensures no symbols, class instances or non-serializable properties
+        // are included in the IndexedDB put operation.
+        const data = creation.toData();
         return this._putRaw(data);
     }
 

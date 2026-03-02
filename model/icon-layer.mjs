@@ -58,4 +58,20 @@ export class IconLayer extends Layer {
     withColor(color) {
         return produce(this, draft => { draft.color = color; });
     }
+
+    /**
+     * @returns {Object} Plain data object for storage
+     */
+    toData() {
+        return {
+            ...super.toData(),
+            type: this.type,
+            slot: this.slot,
+            icon: this.icon,
+            size: this.size,
+            offsetX: this.offsetX,
+            offsetY: this.offsetY,
+            color: this.color
+        };
+    }
 }

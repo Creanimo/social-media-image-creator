@@ -63,6 +63,11 @@ export class Database {
         if (!db.objectStoreNames.contains('image_presets')) {
             db.createObjectStore('image_presets', { keyPath: 'id' });
         }
+
+        // Preset creations store
+        if (!db.objectStoreNames.contains('preset_creations')) {
+            db.createObjectStore('preset_creations', { keyPath: 'id' });
+        }
     }
 
     /**

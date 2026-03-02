@@ -86,4 +86,24 @@ export class IconCalloutLayer extends Layer {
     withColor(color) {
         return produce(this, draft => { draft.color = color; });
     }
+
+    /**
+     * @returns {Object} Plain data object for storage
+     */
+    toData() {
+        return {
+            ...super.toData(),
+            type: this.type,
+            slot: this.slot,
+            styleId: this.styleId,
+            icon: this.icon,
+            text: this.text,
+            html: this.html,
+            size: this.size,
+            width: this.width,
+            offsetX: this.offsetX,
+            offsetY: this.offsetY,
+            color: this.color
+        };
+    }
 }

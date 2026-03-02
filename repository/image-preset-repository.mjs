@@ -17,7 +17,29 @@ export class ImagePresetRepository extends BaseRepository {
      * @returns {Promise<void>}
      */
     async save(preset) {
-        return this._putRaw(preset);
+        // Use toData if available
+        if (typeof preset.toData === 'function') {
+            return this._putRaw(preset.toData());
+        }
+
+        // Deep clone to ensure we have a plain object, while preserving Blobs
+        const sanitize = (obj) => {
+            if (obj instanceof Blob) return obj;
+            if (Array.isArray(obj)) return obj.map(sanitize);
+            if (obj !== null && typeof obj === 'object') {
+                const cleaned = {};
+                for (const key in obj) {
+                    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                        cleaned[key] = sanitize(obj[key]);
+                    }
+                }
+                return cleaned;
+            }
+            return obj;
+        };
+
+        const data = sanitize(preset);
+        return this._putRaw(data);
     }
 
     /**

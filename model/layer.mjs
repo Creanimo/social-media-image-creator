@@ -53,7 +53,7 @@ export class Layer {
     }
 
     /**
-     * @param {boolean} visible
+     * @param {string} name
      * @returns {Layer}
      */
     withName(name) {
@@ -61,6 +61,17 @@ export class Layer {
         return produce(this, draft => {
             draft.name = name;
         });
+    }
 
+    /**
+     * @returns {Object} Plain data object for storage
+     */
+    toData() {
+        return {
+            id: this.id,
+            name: this.name,
+            visible: this.visible,
+            zIndex: this.zIndex
+        };
     }
 }

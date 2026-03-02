@@ -18,12 +18,15 @@ export class ImageRepository extends BaseRepository {
      * @returns {Promise<void>}
      */
     async save(image) {
-        // Convert to plain object for IndexedDB
-        const data = {
-            id: image.id,
-            imageBlob: image.imageBlob,
-            category: image.category
-        };
+        // Use the model's toData method if available, else use manual conversion
+        // Note: Blobs are serializable and should NOT be JSON stringified
+        const data = typeof image.toData === 'function' 
+            ? image.toData() 
+            : {
+                id: image.id,
+                imageBlob: image.imageBlob,
+                category: image.category
+            };
         return this._putRaw(data);
     }
 

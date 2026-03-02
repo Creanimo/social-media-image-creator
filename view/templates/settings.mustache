@@ -49,5 +49,20 @@
                 </wa-button>
             </div>
         </wa-card>
+
+        <wa-card>
+            <div slot="header">
+                <strong>Preset Templates</strong>
+            </div>
+            <wa-text>
+                Clear the preset templates repository and re-ingest them from the server. Use this if you want to update the templates to the most recent state.
+            </wa-text>
+            <div slot="footer">
+                <wa-button id="rebuild-presets-btn" variant="warning">
+                    <wa-icon name="refresh" library="tabler" slot="prefix"></wa-icon>
+                    Rebuild Preset Templates Repository
+                </wa-button>
+            </div>
+        </wa-card>
     </div>
 </wa-page>

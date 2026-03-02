@@ -14,6 +14,8 @@ export class Dependencies {
     backgroundRepository;
     /** @type {import('../repository/image-preset-repository.mjs').ImagePresetRepository} */
     imagePresetRepository;
+    /** @type {import('../repository/preset-creation-repository.mjs').PresetCreationRepository} */
+    presetCreationRepository;
     /** @type {import('./image-url-manager.mjs').ImageUrlManager} */
     imageUrlManager;
     /** @type {import('./preferences.mjs').Preferences} */
@@ -43,6 +45,7 @@ export class Dependencies {
      * @param {import('../repository/creation-repository.mjs').CreationRepository} [deps.creationRepository]
      * @param {import('../repository/background-repository.mjs').BackgroundRepository} [deps.backgroundRepository]
      * @param {import('../repository/image-preset-repository.mjs').ImagePresetRepository} [deps.imagePresetRepository]
+     * @param {import('../repository/preset-creation-repository.mjs').PresetCreationRepository} [deps.presetCreationRepository]
      * @param {import('./image-url-manager.mjs').ImageUrlManager} [deps.imageUrlManager]
      * @param {import('./preferences.mjs').Preferences} [deps.preferences]
      * @param {import('./category-utils.mjs').CategoryUtils} [deps.categoryUtils]
@@ -55,7 +58,7 @@ export class Dependencies {
      */
     constructor({ 
         idGenerator, database, imageRepository, creationRepository, 
-        backgroundRepository, imagePresetRepository, imageUrlManager, 
+        backgroundRepository, imagePresetRepository, presetCreationRepository, imageUrlManager, 
         preferences, categoryUtils, imageService, layerFactory, exportAsImage, 
         exportAsJson, importJson, assetIngestService 
     } = {}) {
@@ -65,6 +68,7 @@ export class Dependencies {
         this.creationRepository = creationRepository;
         this.backgroundRepository = backgroundRepository;
         this.imagePresetRepository = imagePresetRepository;
+        this.presetCreationRepository = presetCreationRepository;
         this.imageUrlManager = imageUrlManager;
         this.preferences = preferences;
         this.categoryUtils = categoryUtils;

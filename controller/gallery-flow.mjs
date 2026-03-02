@@ -1,6 +1,8 @@
 /**
  * Controller/Orchestrator for gallery interactions within modals.
  */
+import { GalleryComponent } from '../view/gallery-component.mjs';
+
 export class GalleryFlow {
     #deps;
     #modal;

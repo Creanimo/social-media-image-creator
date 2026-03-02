@@ -58,4 +58,20 @@ export class ImageLayer extends Layer {
     withOffsetY(offsetY) {
         return produce(this, draft => { draft.offsetY = offsetY; });
     }
+
+    /**
+     * @returns {Object} Plain data object for storage
+     */
+    toData() {
+        return {
+            ...super.toData(),
+            type: this.type,
+            slot: this.slot,
+            imageId: this.imageId,
+            width: this.width,
+            height: this.height,
+            offsetX: this.offsetX,
+            offsetY: this.offsetY
+        };
+    }
 }

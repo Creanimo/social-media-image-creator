@@ -37,10 +37,13 @@ export class Creation {
      * @param {Dependencies} [deps]
      */
     constructor(id, data = {}, deps = null) {
-        this.id = id || (deps?.idGenerator ? deps.idGenerator.generate() : null);
-        
-        // Apply data properties
+        // Apply data properties first
         Object.assign(this, data);
+        
+        // Ensure we have a valid ID. 
+        // If an id was passed as first argument, it takes precedence.
+        // If data.id was null/undefined, it uses the generated ID.
+        this.id = id || this.id || (deps?.idGenerator ? deps.idGenerator.generate() : null);
         
         // Ensure layers is always an array of appropriate Layer objects
         if (this.layers) {
@@ -215,5 +218,22 @@ export class Creation {
             const maxZ = draft.layers.reduce((max, l) => Math.max(max, l.zIndex || 0), 0);
             draft.layers.push(layer.withZIndex(maxZ + 1));
         });
+    }
+
+    /**
+     * @returns {Object} Plain data object for storage
+     */
+    toData() {
+        return {
+            id: this.id,
+            title: this.title,
+            width: this.width,
+            height: this.height,
+            backgroundImageId: this.backgroundImageId,
+            backgroundScale: this.backgroundScale,
+            backgroundX: this.backgroundX,
+            backgroundY: this.backgroundY,
+            layers: this.layers.map(l => l.toData())
+        };
     }
 }

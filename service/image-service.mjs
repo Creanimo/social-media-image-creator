@@ -45,6 +45,33 @@ export class ImageService {
     }
 
     /**
+     * Starts a new creation from a preset template.
+     * @param {string} id Preset ID
+     * @returns {Promise<Creation>}
+     */
+    async startCreationFromPreset(id) {
+        const preset = await this.#deps.presetCreationRepository.get(id);
+        if (!preset) {
+            throw new Error(`Preset creation with ID ${id} not found`);
+        }
+
+        // Convert to plain data to avoid carrying over class instances or symbols
+        const plainPreset = JSON.parse(JSON.stringify(preset));
+
+        // Create a new creation with a fresh ID, using the preset data
+        // Explicitly remove the preset's ID so that a new one is generated
+        const { id: presetId, ...creationData } = plainPreset;
+
+        const newCreation = new Creation(null, {
+            ...creationData,
+            title: `New from ${plainPreset.title || 'Template'}`
+        }, this.#deps);
+
+        await this.#deps.creationRepository.save(newCreation);
+        return newCreation;
+    }
+
+    /**
      * Starts a new creation from an image.
      * @param {string} id Image ID
      * @param {'background'|'image'} category
@@ -54,7 +81,9 @@ export class ImageService {
         const response = await fetch('/presets/template-creations/default.json');
         const defaultData = await response.json();
         
-        let creationData = { ...defaultData };
+        // Explicitly remove the preset's ID so that a new one is generated
+        const { id: presetId, ...creationData } = defaultData;
+
         if (category === 'background') {
             creationData.backgroundImageId = id;
         }

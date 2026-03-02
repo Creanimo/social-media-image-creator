@@ -14,8 +14,8 @@ export class CreationsView {
         this.#template = await res.text();
     }
 
-    render(creations) {
-        const rendered = Mustache.render(this.#template, { creations });
+    render(creations, presets) {
+        const rendered = Mustache.render(this.#template, { creations, presets });
         this.#container.innerHTML = rendered;
     }
 

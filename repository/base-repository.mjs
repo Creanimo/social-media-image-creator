@@ -63,9 +63,43 @@ export class BaseRepository {
     async _putRaw(data) {
         const store = await this._db.getStore(this._storeName, 'readwrite');
         return new Promise((resolve, reject) => {
-            const request = store.put(data);
-            request.onsuccess = () => resolve();
-            request.onerror = () => reject(request.error);
+            try {
+                const request = store.put(data);
+                request.onsuccess = () => resolve();
+                request.onerror = () => {
+                    console.error(`[BaseRepository] IDB Error in ${this._storeName}:`, request.error);
+                    console.error('[BaseRepository] Payload:', data);
+                    reject(request.error);
+                };
+            } catch (err) {
+                console.error(`[BaseRepository] Caught exception in ${this._storeName}:`, err);
+                console.error('[BaseRepository] Payload:', data);
+                // Additional check for non-cloneable objects
+                this.#deepInspect(data);
+                reject(err);
+            }
         });
+    }
+
+    #deepInspect(obj, path = 'root') {
+        if (obj === null || typeof obj !== 'object') return;
+        if (obj instanceof Blob) return;
+        
+        if (typeof obj === 'function') {
+            console.error(`[BaseRepository] Found function at ${path}:`, obj);
+        }
+
+        const symbols = Object.getOwnPropertySymbols(obj);
+        if (symbols.length > 0) {
+            console.error(`[BaseRepository] Found symbols at ${path}:`, symbols);
+        }
+
+        if (Array.isArray(obj)) {
+            obj.forEach((item, i) => this.#deepInspect(item, `${path}[${i}]`));
+        } else {
+            for (const key in obj) {
+                this.#deepInspect(obj[key], `${path}.${key}`);
+            }
+        }
     }
 }

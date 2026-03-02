@@ -9,12 +9,14 @@ import { ImageRepository } from './repository/image-repository.mjs';
 import { CreationRepository } from './repository/creation-repository.mjs';
 import { BackgroundRepository } from './repository/background-repository.mjs';
 import { ImagePresetRepository } from './repository/image-preset-repository.mjs';
+import { PresetCreationRepository } from './repository/preset-creation-repository.mjs';
 import { GalleryController } from './controller/gallery-controller.mjs';
 import { CreationsController } from './controller/creations-controller.mjs';
 import { EditorController } from './controller/editor-controller.mjs';
 import { SettingsController } from './controller/settings-controller.mjs';
 import { BackgroundIngestController } from './controller/background-ingest-controller.mjs';
 import { ImagePresetIngestController } from './controller/image-preset-ingest-controller.mjs';
+import { PresetCreationIngestController } from './controller/preset-creation-ingest-controller.mjs';
 import { FontStyleController } from './controller/font-style-controller.mjs';
 import { FontStyleListController } from './controller/font-style-list-controller.mjs';
 import { Router } from './router/router.mjs';
@@ -36,6 +38,7 @@ async function init() {
         creationRepository: new CreationRepository(db),
         backgroundRepository: new BackgroundRepository(db),
         imagePresetRepository: new ImagePresetRepository(db),
+        presetCreationRepository: new PresetCreationRepository(db),
         imageUrlManager: new ImageUrlManager(),
         preferences: new Preferences(),
         categoryUtils: new CategoryUtils()
@@ -52,10 +55,12 @@ async function init() {
     // 2. Render Base Frame
     const backgroundIngestController = new BackgroundIngestController(deps);
     const imagePresetIngestController = new ImagePresetIngestController(deps);
+    const presetCreationIngestController = new PresetCreationIngestController(deps);
     const fontStyleController = new FontStyleController();
     await Promise.all([
         backgroundIngestController.ingest(),
         imagePresetIngestController.ingest(),
+        presetCreationIngestController.ingest(),
         fontStyleController.init()
     ]);
 
