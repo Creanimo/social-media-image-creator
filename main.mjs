@@ -27,6 +27,7 @@ import { ExportAsJson } from './service/export-as-json.mjs';
 import { ImageService } from './service/image-service.mjs';
 import { ImportJson } from './service/import-json.mjs';
 import { LayerFactory } from './service/layer-factory.mjs';
+import {CalloutStyleController} from "./controller/callout-style-controller.mjs";
 
 async function init() {
     // 1. Setup Dependencies
@@ -57,11 +58,13 @@ async function init() {
     const imagePresetIngestController = new ImagePresetIngestController(deps);
     const presetCreationIngestController = new PresetCreationIngestController(deps);
     const fontStyleController = new FontStyleController();
+    const calloutStyleController = new CalloutStyleController();
     await Promise.all([
         backgroundIngestController.ingest(),
         imagePresetIngestController.ingest(),
         presetCreationIngestController.ingest(),
-        fontStyleController.init()
+        fontStyleController.init(),
+        calloutStyleController.init()
     ]);
 
     const [frameTemplateResponse, fontStylesLoaderResponse] = await Promise.all([
@@ -71,9 +74,12 @@ async function init() {
 
     const template = await frameTemplateResponse.text();
     const fontStylesLoaderTemplate = await fontStylesLoaderResponse.text();
+    let cssUrls = fontStyleController.getUrls();
+    cssUrls = cssUrls.concat(calloutStyleController.getUrls())
+    console.log(cssUrls);
 
     const fontStylesHtml = Mustache.render(fontStylesLoaderTemplate, {
-        urls: fontStyleController.getUrls()
+        urls: cssUrls
     });
 
     const frameData = {
