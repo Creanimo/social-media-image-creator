@@ -30,6 +30,10 @@ export class Creation {
     backgroundY;
     /** @type {ReadonlyArray<Layer>} */
     layers;
+    /** @type {number} */
+    lastEdited;
+    /** @type {string} */
+    thumbnailId;
 
     /**
      * @param {string|null} id
@@ -66,6 +70,9 @@ export class Creation {
         } else {
             this.layers = [];
         }
+
+        this.lastEdited = this.lastEdited || Date.now();
+        this.thumbnailId = this.thumbnailId || null;
     }
 
     /**
@@ -221,6 +228,26 @@ export class Creation {
     }
 
     /**
+     * @param {number} lastEdited
+     * @returns {Creation}
+     */
+    withLastEdited(lastEdited) {
+        return produce(this, draft => {
+            draft.lastEdited = lastEdited;
+        });
+    }
+
+    /**
+     * @param {string} thumbnailId
+     * @returns {Creation}
+     */
+    withThumbnailId(thumbnailId) {
+        return produce(this, draft => {
+            draft.thumbnailId = thumbnailId;
+        });
+    }
+
+    /**
      * @returns {Object} Plain data object for storage
      */
     toData() {
@@ -233,7 +260,9 @@ export class Creation {
             backgroundScale: this.backgroundScale,
             backgroundX: this.backgroundX,
             backgroundY: this.backgroundY,
-            layers: this.layers.map(l => l.toData())
+            layers: this.layers.map(l => l.toData()),
+            lastEdited: this.lastEdited,
+            thumbnailId: this.thumbnailId
         };
     }
 }

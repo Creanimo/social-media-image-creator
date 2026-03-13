@@ -15,7 +15,7 @@ export class ImageUrlManager {
      * @param {Blob} blob The image data
      * @returns {string} The Object URL
      */
-    getUrl(id, blob) {
+    createUrl(id, blob) {
         if (this.#urls.has(id)) {
             return this.#urls.get(id);
         }

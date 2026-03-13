@@ -56,7 +56,7 @@ export class GalleryFlow {
 
         const mapUploaded = img => ({
             id: img.id,
-            src: this.#deps.imageUrlManager.getUrl(img.id, img.imageBlob),
+            src: this.#deps.imageUrlManager.createUrl(img.id, img.imageBlob),
             category: img.category,
             source: 'my-uploads',
             canDelete: true
@@ -64,7 +64,7 @@ export class GalleryFlow {
 
         const mapPreset = (bg, category = 'background') => ({
             ...bg,
-            src: this.#deps.imageUrlManager.getUrl(bg.id, bg.imageBlob),
+            src: this.#deps.imageUrlManager.createUrl(bg.id, bg.imageBlob),
             category: category,
             source: 'pre-made',
             canDelete: false

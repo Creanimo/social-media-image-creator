@@ -16,13 +16,21 @@ export class CreationRepository extends BaseRepository {
     /**
      * Saves a creation to the database.
      * @param {Creation} creation
+     * @param {boolean} [isThumbnailUpdate=false]
      * @returns {Promise<void>}
      */
-    async save(creation) {
-        // Use the model's own toData() method to get a clean, serializable object.
-        // This ensures no symbols, class instances or non-serializable properties
-        // are included in the IndexedDB put operation.
-        const data = creation.toData();
+    async save(creation, isThumbnailUpdate = false) {
+        // Update lastEdited timestamp and clear thumbnail association before saving
+        // This ensures a new thumbnail will be generated in the creations view.
+        // If this is a thumbnail update, we don't want to clear it again.
+        let creationToSave = creation;
+        if (!isThumbnailUpdate) {
+            creationToSave = creation
+                .withLastEdited(Date.now())
+                .withThumbnailId(null);
+        }
+            
+        const data = creationToSave.toData();
         return this._putRaw(data);
     }
 

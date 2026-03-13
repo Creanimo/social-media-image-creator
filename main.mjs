@@ -10,6 +10,7 @@ import { CreationRepository } from './repository/creation-repository.mjs';
 import { BackgroundRepository } from './repository/background-repository.mjs';
 import { ImagePresetRepository } from './repository/image-preset-repository.mjs';
 import { PresetCreationRepository } from './repository/preset-creation-repository.mjs';
+import { ThumbnailRepository } from './repository/thumbnail-repository.mjs';
 import { GalleryController } from './controller/gallery-controller.mjs';
 import { CreationsController } from './controller/creations-controller.mjs';
 import { EditorController } from './controller/editor-controller.mjs';
@@ -27,10 +28,12 @@ import { ExportAsJson } from './service/export-as-json.mjs';
 import { ImageService } from './service/image-service.mjs';
 import { ImportJson } from './service/import-json.mjs';
 import { LayerFactory } from './service/layer-factory.mjs';
+import { ThumbnailService } from './service/thumbnail-service.mjs';
 import {CalloutStyleController} from "./controller/callout-style-controller.mjs";
 
 async function init() {
-    // 1. Setup Dependencies
+    const fontStyleController = new FontStyleController();
+    const calloutStyleController = new CalloutStyleController();
     const db = new Database();
     const deps = new Dependencies({
         idGenerator: new IdGenerator(),
@@ -40,9 +43,12 @@ async function init() {
         backgroundRepository: new BackgroundRepository(db),
         imagePresetRepository: new ImagePresetRepository(db),
         presetCreationRepository: new PresetCreationRepository(db),
+        thumbnailRepository: new ThumbnailRepository(db),
         imageUrlManager: new ImageUrlManager(),
         preferences: new Preferences(),
-        categoryUtils: new CategoryUtils()
+        categoryUtils: new CategoryUtils(),
+        fontStyleController,
+        calloutStyleController
     });
 
     // 1.1 Setup Services
@@ -52,13 +58,12 @@ async function init() {
     deps.exportAsJson = new ExportAsJson(deps);
     deps.importJson = new ImportJson(deps);
     deps.assetIngestService = new AssetIngestService(deps);
+    deps.thumbnailService = new ThumbnailService(deps);
 
     // 2. Render Base Frame
     const backgroundIngestController = new BackgroundIngestController(deps);
     const imagePresetIngestController = new ImagePresetIngestController(deps);
     const presetCreationIngestController = new PresetCreationIngestController(deps);
-    const fontStyleController = new FontStyleController();
-    const calloutStyleController = new CalloutStyleController();
     await Promise.all([
         backgroundIngestController.ingest(),
         imagePresetIngestController.ingest(),
@@ -88,7 +93,7 @@ async function init() {
             <div class="wa-cluster" style="justify-content: space-between; align-items: center; width: 100%;">
                 <h1>Social Media Image Creator</h1>
                 <wa-button id="load-from-json-btn" variant="neutral" size="small">
-                    <wa-icon name="file-import" library="tabler" slot="prefix"></wa-icon>
+                    <wa-icon name="file-import" library="tabler" slot="start"></wa-icon>
                     Load from JSON
                 </wa-button>
             </div>

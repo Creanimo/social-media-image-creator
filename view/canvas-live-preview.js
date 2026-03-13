@@ -104,3 +104,72 @@ window.addEventListener('message', (event) => {
         LivePreviewReceiver[type](data);
     }
 });
+
+// Signal that the renderer is ready
+const signalReady = async () => {
+    // Wait for all webawesome components to be defined and updated
+    const components = Array.from(document.querySelectorAll('*')).filter(el => el.tagName.startsWith('WA-'));
+    
+    await Promise.all(components.map(async (el) => {
+        const tagName = el.tagName.toLowerCase();
+        if (customElements.get(tagName)) {
+            // If it's already a custom element, wait for it to be ready
+            if (el.updateComplete) {
+                await el.updateComplete;
+            }
+        } else {
+            // Otherwise wait for it to be defined
+            await customElements.whenDefined(tagName);
+            // Then wait for one update cycle
+            const updatedEl = document.querySelector(tagName);
+            if (updatedEl && updatedEl.updateComplete) {
+                await updatedEl.updateComplete;
+            }
+        }
+
+        // Specific wait for icons
+        if (tagName === 'wa-icon') {
+            // Check if it already loaded (has an svg in shadow dom)
+            const hasSvg = el.shadowRoot && el.shadowRoot.querySelector('svg');
+            if (!hasSvg) {
+                await new Promise(resolve => {
+                    const timeout = setTimeout(() => {
+                        console.warn('[canvas-live-preview] wa-icon load timed out', el.name);
+                        resolve();
+                    }, 2000);
+                    el.addEventListener('wa-load', () => {
+                        clearTimeout(timeout);
+                        resolve();
+                    }, { once: true });
+                    el.addEventListener('wa-error', (err) => {
+                        clearTimeout(timeout);
+                        console.error('[canvas-live-preview] wa-icon load error', el.name, err);
+                        resolve();
+                    }, { once: true });
+                });
+            }
+        }
+    }));
+
+    // Additional small delay to ensure icons are actually rendered in the DOM/Shadow DOM
+    // Sometimes updateComplete is not enough for the icon font/SVG to be fully injected
+    await new Promise(resolve => setTimeout(resolve, 200));
+
+    // Wait for all images to be loaded
+    const images = Array.from(document.querySelectorAll('img'));
+    await Promise.all(images.map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise(resolve => {
+            img.onload = resolve;
+            img.onerror = resolve; // Continue even if image fails to load
+        });
+    }));
+
+    window.parent.postMessage({ type: 'RENDER_READY' }, '*');
+};
+
+if (document.readyState === 'complete') {
+    signalReady();
+} else {
+    window.addEventListener('load', signalReady);
+}

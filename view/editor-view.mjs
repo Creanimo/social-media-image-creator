@@ -189,7 +189,7 @@ export class EditorView {
             if (layer.type === 'image' && layer.imageId) {
                 const img = allImages.find(i => i.id === layer.imageId);
                 if (img) {
-                    src = this.#urlManager.getUrl(img.id, img.imageBlob);
+                    src = this.#urlManager.createUrl(img.id, img.imageBlob);
                 }
             }
             return {
@@ -262,7 +262,7 @@ export class EditorView {
         // Manage URLs for modal images using central URL manager
         const mappedImages = images.map(img => ({
             id: img.id,
-            src: this.#urlManager.getUrl(img.id, img.imageBlob),
+            src: this.#urlManager.createUrl(img.id, img.imageBlob),
             category: img.category,
             source: 'my-uploads',
             isBackground: img.category === 'background',
@@ -273,7 +273,7 @@ export class EditorView {
         const mappedPresets = [
             ...presetBackgrounds.map(bg => ({
                 ...bg,
-                src: this.#urlManager.getUrl(bg.id, bg.imageBlob),
+                src: this.#urlManager.createUrl(bg.id, bg.imageBlob),
                 category: 'background',
                 source: 'pre-made',
                 isBackground: true,
@@ -281,7 +281,7 @@ export class EditorView {
             })),
             ...imagePresets.map(preset => ({
                 ...preset,
-                src: this.#urlManager.getUrl(preset.id, preset.imageBlob),
+                src: this.#urlManager.createUrl(preset.id, preset.imageBlob),
                 category: 'image',
                 source: 'pre-made',
                 isImage: true,

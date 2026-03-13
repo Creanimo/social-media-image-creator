@@ -1,6 +1,7 @@
 * This is a webapp to create images for social media.
 * The user puts different types of layers over a background image.
 * There are preset assets for the user to choose from and for the app to fetch default states from.
+* This preset folder is stored in another git repository than the core app, so people can fork and switch to their own assets.
 * The editor canvas is an iframe. There is a live preview pipeline to update the canvas from the editor sidebar without reloading the page.
 * The code follows a model, view, controller architecture.
 * Mustache is the templating engine.

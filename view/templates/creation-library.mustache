@@ -1,3 +1,8 @@
+<style>
+    .creation-card {
+        width: 300px;
+    }
+</style>
 <div class="creations wa-stack">
     <h2>Creations & Templates</h2>
 
@@ -9,34 +14,62 @@
             <div class="wa-stack">
                 <div class="wa-cluster" style="--max-column-size: 300px">
                     {{#creations}}
-                    <wa-card>
-                         <div slot="header">Creation: {{title}}{{^title}}{{id}}{{/title}}</div>
-                         <p>Size: {{width}}x{{height}}</p>
-                         <p>Layers: {{layers.length}}</p>
-                         <div slot="footer">
-                            <wa-button variant="primary" data-id="{{id}}" class="edit-btn">Edit</wa-button>
-                            <wa-button variant="danger" data-id="{{id}}" class="delete-btn">Delete</wa-button>
+                    <wa-card class="creation-card">
+                         {{#thumbnailUrl}}
+                         <img slot="media" src="{{thumbnailUrl}}" alt="{{title}}" style="width: 100%; height: auto; display: block;">
+                         {{/thumbnailUrl}}
+                         {{^thumbnailUrl}}
+                         <div slot="media" style="width: 100%; aspect-ratio: 16/9; background: #eee; display: flex; align-items: center; justify-content: center;">
+                            <wa-icon name="photo" library="tabler" style="font-size: 2rem; color: #999;"></wa-icon>
                          </div>
+                         {{/thumbnailUrl}}
+
+                         <strong>{{title}}{{^title}}{{id}}{{/title}}</strong><br />
+                         <small class="wa-caption-s">Size: {{width}}x{{height}}</small><br />
+                         <small class="wa-caption-s">Layers: {{layers.length}}</small>
+
+                         <wa-button slot="footer" variant="brand" data-id="{{id}}" class="edit-btn" size="small">
+                            <wa-icon name="edit" library="tabler" slot="start"></wa-icon>
+                            Edit
+                         </wa-button>
+                         <wa-button slot="footer" variant="danger" data-id="{{id}}" class="delete-btn" size="small">
+                            <wa-icon name="trash" library="tabler" slot="start"></wa-icon>
+                            Delete
+                         </wa-button>
                     </wa-card>
                     {{/creations}}
                     {{^creations}}
                     <p>No creations yet.</p>
                     {{/creations}}
                 </div>
-                <wa-button id="create-new" variant="primary">Create New Creation</wa-button>
+                <wa-button id="create-new" variant="brand" pill>
+                    <wa-icon name="plus" library="tabler" slot="start"></wa-icon>
+                    Create New Creation
+                </wa-button>
             </div>
         </wa-tab-panel>
 
         <wa-tab-panel name="preset-templates">
             <div class="wa-cluster" style="--max-column-size: 300px">
                 {{#presets}}
-                <wa-card>
-                     <div slot="header">Template: {{title}}{{^title}}{{id}}{{/title}}</div>
-                     <p>Size: {{width}}x{{height}}</p>
-                     <p>Layers: {{layers.length}}</p>
-                     <div slot="footer">
-                        <wa-button variant="primary" data-id="{{id}}" class="use-preset-btn">Use Template</wa-button>
+                <wa-card class="creation-card">
+                     {{#thumbnailUrl}}
+                     <img slot="media" src="{{thumbnailUrl}}" alt="{{title}}" style="width: 100%; height: auto; display: block;">
+                     {{/thumbnailUrl}}
+                     {{^thumbnailUrl}}
+                     <div slot="media" style="width: 100%; aspect-ratio: 16/9; background: #eee; display: flex; align-items: center; justify-content: center;">
+                        <wa-icon name="photo" library="tabler" style="font-size: 2rem; color: #999;"></wa-icon>
                      </div>
+                     {{/thumbnailUrl}}
+
+                     <strong>{{title}}{{^title}}{{id}}{{/title}}</strong><br />
+                     <small class="wa-caption-s">Size: {{width}}x{{height}}</small><br />
+                     <small class="wa-caption-s">Layers: {{layers.length}}</small>
+
+                     <wa-button slot="footer" variant="brand" data-id="{{id}}" class="use-preset-btn" size="small">
+                        <wa-icon name="copy" library="tabler" slot="start"></wa-icon>
+                        Use Template
+                     </wa-button>
                 </wa-card>
                 {{/presets}}
                 {{^presets}}

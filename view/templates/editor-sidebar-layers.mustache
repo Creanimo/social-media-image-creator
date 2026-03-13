@@ -26,11 +26,11 @@
             <div class="wa-cluster" style="gap: 10px; align-items: center;">
                 <wa-text size="small" style="opacity: 0.8;">Overlap:</wa-text>
                 <wa-button size="small" class="bring-to-front-btn" data-index="{{index}}" {{#isAtFront}}disabled{{/isAtFront}} onclick="event.stopPropagation();" title="Bring to Front">
-                    <wa-icon name="arrow-bar-to-up" library="tabler" slot="prefix"></wa-icon>
+                    <wa-icon name="arrow-bar-to-up" library="tabler" slot="start"></wa-icon>
                     Bring to Front
                 </wa-button>
                 <wa-button size="small" class="send-to-back-btn" data-index="{{index}}" {{#isAtBack}}disabled{{/isAtBack}} onclick="event.stopPropagation();" title="Send to Back">
-                    <wa-icon name="arrow-bar-to-down" library="tabler" slot="prefix"></wa-icon>
+                    <wa-icon name="arrow-bar-to-down" library="tabler" slot="start"></wa-icon>
                     Send to Back
                 </wa-button>
             </div>
@@ -57,7 +57,7 @@
     
     <div class="wa-cluster" style="gap: 10px;">
         <wa-button id="add-layer-btn" variant="primary">
-            <wa-icon name="plus" library="tabler" slot="prefix"></wa-icon>
+            <wa-icon name="plus" library="tabler" slot="start"></wa-icon>
             Add Layer
         </wa-button>
     </div>

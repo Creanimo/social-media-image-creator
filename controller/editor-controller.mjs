@@ -151,7 +151,7 @@ export class EditorController {
             if (this.#currentCreation?.backgroundImageId) {
                 const img = allImages.find(i => i.id === this.#currentCreation.backgroundImageId);
                 if (img) {
-                    bgSrc = this.#deps.imageUrlManager.getUrl(img.id, img.imageBlob);
+                    bgSrc = this.#deps.imageUrlManager.createUrl(img.id, img.imageBlob);
                 }
             }
 
@@ -183,7 +183,7 @@ export class EditorController {
             if (this.#currentCreation?.backgroundImageId) {
                 const img = await this.#deps.imageService.getImage(this.#currentCreation.backgroundImageId);
                 if (img) {
-                    bgSrc = this.#deps.imageUrlManager.getUrl(img.id, img.imageBlob);
+                    bgSrc = this.#deps.imageUrlManager.createUrl(img.id, img.imageBlob);
                 }
             }
             const uploadedImages = await this.#deps.imageRepository.getAll(this.#deps);
@@ -422,7 +422,20 @@ export class EditorController {
         container.querySelector('#download-png-btn')?.addEventListener('click', async () => {
             const btn = container.querySelector('#download-png-btn');
             btn.loading = true;
+            
+            const zoomableFrame = container.querySelector('wa-zoomable-frame');
+            let originalZoom = null;
+            
             try {
+                if (zoomableFrame) {
+                    originalZoom = zoomableFrame.zoom;
+                    // Reset zoom to 100% (zoom = 1) before export to ensure correct dimensions 
+                    // and avoid potential scaling issues with snapdom.
+                    zoomableFrame.zoom = 1;
+                    // Wait for the next frame to ensure the scale is applied.
+                    await new Promise(resolve => requestAnimationFrame(resolve));
+                }
+
                 const iframe = this.#view.getCanvasIframe();
                 if (!iframe || !iframe.contentDocument) {
                     throw new Error('Canvas iframe not found or not ready');
@@ -447,6 +460,10 @@ export class EditorController {
                 console.error('Export failed:', error);
                 alert('Export failed. Please check the console for details.');
             } finally {
+                // Restore zoom if it was changed
+                if (zoomableFrame && originalZoom !== null) {
+                    zoomableFrame.zoom = originalZoom;
+                }
                 btn.loading = false;
             }
         });

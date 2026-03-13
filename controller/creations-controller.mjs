@@ -20,7 +20,19 @@ export class CreationsController {
             this.#deps.creationRepository.getAll(this.#deps),
             this.#deps.presetCreationRepository.getAll(this.#deps)
         ]);
-        this.#view.render(creations, presets);
+
+        // Ensure thumbnails exist for all
+        const creationsWithThumbs = await Promise.all(creations.map(async c => {
+            const thumbnailUrl = await this.#deps.thumbnailService.getThumbnailUrl(c);
+            return { ...c, thumbnailUrl };
+        }));
+
+        const presetsWithThumbs = await Promise.all(presets.map(async p => {
+            const thumbnailUrl = await this.#deps.thumbnailService.getThumbnailUrl(p);
+            return { ...p, thumbnailUrl };
+        }));
+
+        this.#view.render(creationsWithThumbs, presetsWithThumbs);
         this.#bindEvents();
     }
 

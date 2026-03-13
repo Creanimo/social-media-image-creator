@@ -15,14 +15,10 @@ export class PresetCreationRepository extends BaseRepository {
     /**
      * Saves a preset creation to the database.
      * @param {Creation|Object} presetData
+     * @param {boolean} [isThumbnailUpdate=false]
      * @returns {Promise<void>}
      */
-    async save(presetData) {
-        // If it's a model instance, use its toData() method
-        if (typeof presetData.toData === 'function') {
-            return this._putRaw(presetData.toData());
-        }
-
+    async save(presetData, isThumbnailUpdate = false) {
         // Deep clone to ensure we have a plain object, while preserving Blobs
         const sanitize = (obj) => {
             if (obj instanceof Blob) return obj;
@@ -39,7 +35,22 @@ export class PresetCreationRepository extends BaseRepository {
             return obj;
         };
 
-        const data = sanitize(presetData);
+        let data = (typeof presetData.toData === 'function') 
+            ? presetData.toData() 
+            : sanitize(presetData);
+            
+        // For presets, if lastEdited is missing, set it to the ingestion time
+        if (!data.lastEdited) {
+            data.lastEdited = Date.now();
+        }
+        
+        // If this is NOT a thumbnail update, we might want to clear it if it was changed
+        // But presets aren't normally edited in the UI. 
+        // If they ARE updated through ingestion, we might want to clear the thumbnail.
+        if (!isThumbnailUpdate && data.thumbnailId) {
+             data.thumbnailId = null;
+        }
+        
         return this._putRaw(data);
     }
 
