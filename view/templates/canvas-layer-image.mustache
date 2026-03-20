@@ -2,6 +2,13 @@
      data-index="{{index}}"
      style="z-index: {{zIndex}}; {{#width}}width: {{width}}px;{{/width}} {{#height}}height: {{height}}px;{{/height}}">
     <div style="transform: translate({{offsetX}}px, {{offsetY}}px);">
-        <img src="{{src}}" style="{{#width}}width: {{width}}px;{{/width}} {{#height}}height: {{height}}px;{{/height}} object-fit: contain; image-rendering: high-quality;" />
+        <img src="{{src}}" 
+             class="image-layer__img"
+             data-brightness="{{brightness}}"
+             data-contrast="{{contrast}}"
+             data-sepia="{{sepia}}"
+             data-hue="{{hue}}"
+             data-saturate="{{saturate}}"
+             style="{{#width}}width: {{width}}px;{{/width}} {{#height}}height: {{height}}px;{{/height}} object-fit: contain; image-rendering: high-quality; --image-filter: {{filterString}};" />
     </div>
 </div>

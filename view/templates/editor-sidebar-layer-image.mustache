@@ -14,20 +14,55 @@
     <div class="wa-flank:end">
         <wa-slider class="layer-slider" data-index="{{index}}" data-type="width" label="Width" name="layer-{{index}}-width" value="{{width}}" min="0" max="{{creation.widthTimesTwo}}" step="1" with-tooltip></wa-slider>
         <wa-button variant="neutral" circle size="small" class="reset-slider-btn" data-target="layer-{{index}}-width" data-default="" style="margin-top: 25px;">
-            <wa-iconname="reset" library="tabler"></wa-icon>
+            <wa-icon name="reset" library="tabler"></wa-icon>
         </wa-button>
     </div>
 
     <div class="wa-flank:end">
         <wa-slider class="layer-slider" data-index="{{index}}" data-type="offsetX" label="Offset X" name="layer-{{index}}-offsetX" value="{{offsetX}}" min="-{{creation.width}}" max="{{creation.width}}" step="1" with-tooltip></wa-slider>
         <wa-button variant="neutral" circle size="small" class="reset-slider-btn" data-target="layer-{{index}}-offsetX" data-default="0" style="margin-top: 25px;">
-            <wa-iconname="reset" library="tabler"></wa-icon>
+            <wa-icon name="reset" library="tabler"></wa-icon>
         </wa-button>
     </div>
     <div class="wa-flank:end">
         <wa-slider class="layer-slider" data-index="{{index}}" data-type="offsetY" label="Offset Y" name="layer-{{index}}-offsetY" value="{{offsetY}}" min="-{{creation.height}}" max="{{creation.height}}" step="1" with-tooltip></wa-slider>
         <wa-button variant="neutral" circle size="small" class="reset-slider-btn" data-target="layer-{{index}}-offsetY" data-default="0" style="margin-top: 25px;">
-            <wa-iconname="reset" library="tabler"></wa-icon>
+            <wa-icon name="reset" library="tabler"></wa-icon>
         </wa-button>
     </div>
+
+    <wa-details label="Color Adjustment">
+        <div class="wa-stack" style="gap: 10px;">
+            <div class="wa-flank:end">
+                <wa-slider class="layer-slider" data-index="{{index}}" data-type="brightness" label="Brightness" name="layer-{{index}}-brightness" value="{{brightness}}" min="0" max="200" step="1" with-tooltip></wa-slider>
+                <wa-button variant="neutral" circle size="small" class="reset-slider-btn" data-target="layer-{{index}}-brightness" data-default="100" style="margin-top: 25px;">
+                    <wa-icon name="reset" library="tabler"></wa-icon>
+                </wa-button>
+            </div>
+            <div class="wa-flank:end">
+                <wa-slider class="layer-slider" data-index="{{index}}" data-type="contrast" label="Contrast" name="layer-{{index}}-contrast" value="{{contrast}}" min="0" max="200" step="1" with-tooltip></wa-slider>
+                <wa-button variant="neutral" circle size="small" class="reset-slider-btn" data-target="layer-{{index}}-contrast" data-default="100" style="margin-top: 25px;">
+                    <wa-icon name="reset" library="tabler"></wa-icon>
+                </wa-button>
+            </div>
+            <div class="wa-flank:end">
+                <wa-slider class="layer-slider" data-index="{{index}}" data-type="sepia" label="Sepia" name="layer-{{index}}-sepia" value="{{sepia}}" min="0" max="1" step="0.01" with-tooltip></wa-slider>
+                <wa-button variant="neutral" circle size="small" class="reset-slider-btn" data-target="layer-{{index}}-sepia" data-default="0" style="margin-top: 25px;">
+                    <wa-icon name="reset" library="tabler"></wa-icon>
+                </wa-button>
+            </div>
+            <div class="wa-flank:end">
+                <wa-slider class="layer-slider" data-index="{{index}}" data-type="hue" label="Hue Rotate (deg)" name="layer-{{index}}-hue" value="{{hue}}" min="-180" max="180" step="1" with-tooltip></wa-slider>
+                <wa-button variant="neutral" circle size="small" class="reset-slider-btn" data-target="layer-{{index}}-hue" data-default="0" style="margin-top: 25px;">
+                    <wa-icon name="reset" library="tabler"></wa-icon>
+                </wa-button>
+            </div>
+            <div class="wa-flank:end">
+                <wa-slider class="layer-slider" data-index="{{index}}" data-type="saturate" label="Saturate" name="layer-{{index}}-saturate" value="{{saturate}}" min="0" max="5" step="0.1" with-tooltip></wa-slider>
+                <wa-button variant="neutral" circle size="small" class="reset-slider-btn" data-target="layer-{{index}}-saturate" data-default="1" style="margin-top: 25px;">
+                    <wa-icon name="reset" library="tabler"></wa-icon>
+                </wa-button>
+            </div>
+        </div>
+    </wa-details>
 </div>

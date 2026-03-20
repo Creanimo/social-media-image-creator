@@ -19,6 +19,16 @@ export class ImageLayer extends Layer {
     offsetX;
     /** @type {number} */
     offsetY;
+    /** @type {number} */
+    brightness;
+    /** @type {number} */
+    contrast;
+    /** @type {number} */
+    sepia;
+    /** @type {number} */
+    hue;
+    /** @type {number} */
+    saturate;
 
     /**
      * @param {string|null} id
@@ -33,6 +43,11 @@ export class ImageLayer extends Layer {
         this.height = data.height !== undefined ? data.height : null;
         this.offsetX = data.offsetX || 0;
         this.offsetY = data.offsetY || 0;
+        this.brightness = data.brightness !== undefined ? data.brightness : 100;
+        this.contrast = data.contrast !== undefined ? data.contrast : 100;
+        this.sepia = data.sepia !== undefined ? data.sepia : 0;
+        this.hue = data.hue !== undefined ? data.hue : 0;
+        this.saturate = data.saturate !== undefined ? data.saturate : 1;
     }
 
     withSlot(slot) {
@@ -59,6 +74,26 @@ export class ImageLayer extends Layer {
         return produce(this, draft => { draft.offsetY = offsetY; });
     }
 
+    withBrightness(brightness) {
+        return produce(this, draft => { draft.brightness = brightness; });
+    }
+
+    withContrast(contrast) {
+        return produce(this, draft => { draft.contrast = contrast; });
+    }
+
+    withSepia(sepia) {
+        return produce(this, draft => { draft.sepia = sepia; });
+    }
+
+    withHue(hue) {
+        return produce(this, draft => { draft.hue = hue; });
+    }
+
+    withSaturate(saturate) {
+        return produce(this, draft => { draft.saturate = saturate; });
+    }
+
     /**
      * @returns {Object} Plain data object for storage
      */
@@ -71,7 +106,12 @@ export class ImageLayer extends Layer {
             width: this.width,
             height: this.height,
             offsetX: this.offsetX,
-            offsetY: this.offsetY
+            offsetY: this.offsetY,
+            brightness: this.brightness,
+            contrast: this.contrast,
+            sepia: this.sepia,
+            hue: this.hue,
+            saturate: this.saturate
         };
     }
 }

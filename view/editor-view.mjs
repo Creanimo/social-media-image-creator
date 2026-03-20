@@ -1,5 +1,6 @@
 import Mustache from 'mustache';
 import { ICONS } from '../globals/icons.mjs';
+import { calculateFilters, getFilterString } from '../util/image-filter-util.mjs';
 
 export class EditorView {
     #container;
@@ -199,14 +200,20 @@ export class EditorView {
                     src = this.#urlManager.createUrl(img.id, img.imageBlob);
                 }
             }
+            const isImage = layer.type === 'image';
+            const filterData = isImage ? calculateFilters(layer) : {};
+            const filterString = isImage ? getFilterString(filterData) : 'none';
+
             return {
                 ...layer,
                 index,
                 isFont: layer.type === 'font',
                 isIcon: layer.type === 'icon',
                 isIconCallout: layer.type === 'icon-callout',
-                isImage: layer.type === 'image',
+                isImage,
                 src,
+                ...filterData,
+                filterString,
                 slotIcon: ICONS.slots[layer.slot] || ICONS.slots.default,
                 layerIcon: ICONS.layerTypes[layer.type] || ICONS.slots.default
             };

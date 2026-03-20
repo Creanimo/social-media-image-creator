@@ -1,4 +1,5 @@
 import Mustache from 'mustache';
+import { calculateFilters, getFilterString } from '../util/image-filter-util.mjs';
 
 /**
  * Service for generating and managing thumbnails.
@@ -146,13 +147,19 @@ export class ThumbnailService {
         creationData.backgroundScalePercent = (creationData.backgroundScale || 1) * 100;
         
         creationData.layers = await Promise.all(creationData.layers.map(async (l, index) => {
+            const isImage = l.type === 'image';
+            const filterData = isImage ? calculateFilters(l) : {};
+            const filterString = isImage ? getFilterString(filterData) : 'none';
+
             const mappedLayer = {
                 ...l,
                 index,
                 isFont: l.type === 'font',
                 isIcon: l.type === 'icon',
                 isIconCallout: l.type === 'icon-callout',
-                isImage: l.type === 'image'
+                isImage,
+                ...filterData,
+                filterString
             };
 
             if (mappedLayer.isImage && l.imageId) {

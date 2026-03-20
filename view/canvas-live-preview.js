@@ -1,3 +1,5 @@
+import { calculateFilters, getFilterString } from 'image-filter-util';
+
 const LivePreviewReceiver = {
     UPDATE_BACKGROUND: (data) => {
         const canvas = document.getElementById('canvas');
@@ -13,7 +15,7 @@ const LivePreviewReceiver = {
         }
     },
     UPDATE_LAYER: (data) => {
-        const { index, offsetX, offsetY, size, color, width, html } = data;
+        const { index, offsetX, offsetY, size, color, width, html, brightness, contrast, sepia, hue, saturate } = data;
         const layer = document.querySelector(`[data-index="${index}"]`);
         if (layer) {
             if (offsetX !== undefined || offsetY !== undefined) {
@@ -90,6 +92,27 @@ const LivePreviewReceiver = {
                 if (calloutText) {
                     calloutText.innerHTML = html;
                 }
+            }
+            
+            const img = layer.querySelector('img');
+            if (img && (brightness !== undefined || contrast !== undefined || sepia !== undefined || hue !== undefined || saturate !== undefined)) {
+                if (brightness !== undefined) img.dataset.brightness = brightness;
+                if (contrast !== undefined) img.dataset.contrast = contrast;
+                if (sepia !== undefined) img.dataset.sepia = sepia;
+                if (hue !== undefined) img.dataset.hue = hue;
+                if (saturate !== undefined) img.dataset.saturate = saturate;
+                
+                const filterData = calculateFilters({
+                    brightness: img.dataset.brightness,
+                    contrast: img.dataset.contrast,
+                    sepia: img.dataset.sepia,
+                    hue: img.dataset.hue,
+                    saturate: img.dataset.saturate
+                });
+                
+                img.style.filter = getFilterString(filterData);
+                // Also update the CSS variable used in the initial style
+                img.style.setProperty('--image-filter', getFilterString(filterData));
             }
         }
     }
