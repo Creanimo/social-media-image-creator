@@ -31,7 +31,8 @@
         </wa-button>
     </div>
 
-    <wa-details label="Color Adjustment">
+    <wa-details>
+        <div slot="summary"><wa-icon library="tabler" name="color-filter"></wa-icon> Color Adjustments</div>
         <div class="wa-stack" style="gap: 10px;">
             <div class="wa-flank:end">
                 <wa-slider class="layer-slider" data-index="{{index}}" data-type="brightness" label="Brightness" name="layer-{{index}}-brightness" value="{{brightness}}" min="0" max="200" step="1" with-tooltip></wa-slider>

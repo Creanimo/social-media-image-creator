@@ -10,3 +10,19 @@ wa-page {
         }
     }
 }
+
+img {
+    border-radius: 0;
+}
+
+/* Image Cropping Tool */
+.imgc-handles {
+    border: 2px dotted #c8c8c8;
+}
+.imgc-handles-el[class*="imgc-handles-el-0-"] {
+    width: 10px;
+    height: 10px;
+    border: 2px solid black;
+    outline: 2px solid #c8c8c8;
+    background-color: #c8c8c8;
+}
