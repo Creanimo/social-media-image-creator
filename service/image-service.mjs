@@ -27,7 +27,8 @@ export class ImageService {
         if (id) {
             this.#deps.imageUrlManager.revoke(id);
         }
-        const img = new Image(id, file, category, this.#deps);
+        const name = file instanceof File ? file.name : 'Untitled';
+        const img = new Image(id, file, category, name, this.#deps);
         await this.#deps.imageRepository.save(img);
         return img;
     }
@@ -35,7 +36,7 @@ export class ImageService {
     /**
      * Fetches an image by ID from either the image, background or image preset repository.
      * @param {string} id
-     * @returns {Promise<Object|null>}
+     * @returns {Promise<import('../model/image.mjs').Image|null>}
      */
     async getImage(id) {
         let img = await this.#deps.imageRepository.get(id, this.#deps);
@@ -84,6 +85,7 @@ export class ImageService {
     async startCreationFromImage(id, category) {
         const response = await fetch('/presets/template-creations/default.json');
         const defaultData = await response.json();
+        const img = await this.getImage(id);
         
         // Explicitly remove the preset's ID so that a new one is generated
         const { id: presetId, ...creationData } = defaultData;
@@ -96,7 +98,7 @@ export class ImageService {
 
         if (category === 'image') {
             const imgLayer = new ImageLayer(null, {
-                name: 'Image Layer',
+                name: img?.name || 'Image Layer',
                 imageId: id,
                 slot: 'center-middle'
             }, this.#deps);
@@ -116,11 +118,12 @@ export class ImageService {
      */
     async addImageToCreation(creation, id, category) {
         let updatedCreation = creation;
+        const img = await this.getImage(id);
         if (category === 'background') {
             updatedCreation = creation.withBackgroundImageId(id);
         } else {
             const imgLayer = new ImageLayer(null, {
-                name: 'Image Layer',
+                name: img?.name || 'Image Layer',
                 imageId: id,
                 slot: 'center-middle'
             }, this.#deps);

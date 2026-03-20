@@ -1,4 +1,5 @@
 import Mustache from 'mustache';
+import { ModalCancelledError } from '../util/modal-cancelled-error.mjs';
 
 /**
  * Base class for all modals in the application.
@@ -123,7 +124,7 @@ export class Modal {
         } else {
             // Fallback if dialog is already gone or already closed
             console.warn(`Modal: cancel() called but dialog is missing or closed for ${this.#templateUrl}`);
-            this.#reject?.(new Error('Modal cancelled'));
+            this.#reject?.(new ModalCancelledError());
         }
     }
 
@@ -187,7 +188,7 @@ export class Modal {
             if (resolve && result !== undefined) {
                 resolve(result);
             } else if (reject) {
-                reject(new Error('Modal cancelled'));
+                reject(new ModalCancelledError());
             }
         });
 

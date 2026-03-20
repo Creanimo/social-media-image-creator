@@ -24,6 +24,7 @@ export class ImageRepository extends BaseRepository {
             ? image.toData() 
             : {
                 id: image.id,
+                name: image.name,
                 imageBlob: image.imageBlob,
                 category: image.category
             };
@@ -39,7 +40,7 @@ export class ImageRepository extends BaseRepository {
     async get(id, deps = null) {
         const data = await this._getRaw(id);
         if (!data) return null;
-        return new Image(data.id, data.imageBlob, data.category || 'background', deps);
+        return new Image(data.id, data.imageBlob, data.category || 'background', data.name || 'Untitled', deps);
     }
 
     /**
@@ -49,6 +50,6 @@ export class ImageRepository extends BaseRepository {
      */
     async getAll(deps = null) {
         const rawResults = await this._getAllRaw();
-        return rawResults.map(data => new Image(data.id, data.imageBlob, data.category || 'background', deps));
+        return rawResults.map(data => new Image(data.id, data.imageBlob, data.category || 'background', data.name || 'Untitled', deps));
     }
 }

@@ -1,5 +1,7 @@
 import { GalleryModal } from '../view/gallery-modal.mjs';
 import { CropModal } from '../view/crop-modal.mjs';
+import { ImageUtils } from '../util/image-utils.mjs';
+import { ModalCancelledError } from '../util/modal-cancelled-error.mjs';
 
 /**
  * Controller/Orchestrator for gallery interactions within modals.
@@ -63,7 +65,9 @@ export class GalleryFlow {
             const { id, tabId } = result;
             await this.#handleSelect(id, tabId);
         } catch (e) {
-            console.log('GalleryFlow: galleryModal.open catch', e);
+            if (!(e instanceof ModalCancelledError)) {
+                console.error('GalleryFlow: galleryModal.open error', e);
+            }
             // Cancelled
         }
     }
@@ -105,11 +109,8 @@ export class GalleryFlow {
         const category = this.#deps.categoryUtils.normalize(tabId);
         const image = await this.#deps.imageService.getImage(id);
         
-        if (image && image.imageBlob) {
-            const type = image.imageBlob.type;
-            const isCroppable = type === 'image/jpeg' || type === 'image/png';
-            
-            if (isCroppable) {
+        if (image) {
+            if (ImageUtils.isCroppable(image)) {
                 // Mark as transition to prevent the galleryModal's open() from rejecting with an error
                 this.#galleryModal.submit({ type: 'transition' });
 
@@ -131,7 +132,9 @@ export class GalleryFlow {
                     // if mode is 'no-crop', we just use the original 'id'
                     await this.#apply(finalId, category);
                 } catch (e) {
-                    console.error('GalleryFlow: crop modal error or cancel (existing image)', e);
+                    if (!(e instanceof ModalCancelledError)) {
+                        console.error('GalleryFlow: crop modal error (existing image)', e);
+                    }
                     // Cancelled - re-open gallery modal
                     return this.#run(this.#galleryModal.config.tabs);
                 }
@@ -149,9 +152,8 @@ export class GalleryFlow {
 
     async #handleUpload(file, category) {
         const normalizedCategory = this.#deps.categoryUtils.normalize(category);
-        const isCroppable = file.type === 'image/jpeg' || file.type === 'image/png';
 
-        if (isCroppable) {
+        if (ImageUtils.isCroppable(file)) {
             // Mark as transition to prevent the galleryModal's open() from rejecting with an error
             this.#galleryModal.submit({ type: 'transition' });
             
@@ -174,7 +176,9 @@ export class GalleryFlow {
                 }
                 await this.#apply(finalId, normalizedCategory);
             } catch (e) {
-                console.error('GalleryFlow: crop modal error or cancel', e);
+                if (!(e instanceof ModalCancelledError)) {
+                    console.error('GalleryFlow: crop modal error', e);
+                }
                 // Cancelled - re-open gallery modal
                 await this.#run(this.#galleryModal.config.tabs);
             }

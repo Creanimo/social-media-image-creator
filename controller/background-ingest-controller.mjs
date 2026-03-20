@@ -29,7 +29,11 @@ export class BackgroundIngestController {
                     }
                     return existing;
                 }
-                return { ...assetInfo, category: 'background' };
+                return { 
+                    ...assetInfo, 
+                    name: assetInfo.name || assetInfo.filename || 'Untitled',
+                    category: 'background' 
+                };
             }
         });
     }

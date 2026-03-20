@@ -26,6 +26,7 @@ export class ImagePresetIngestController {
                 if (isExisting) return existing;
                 return { 
                     ...assetInfo, 
+                    name: assetInfo.name || assetInfo.filename || 'Untitled',
                     category: assetInfo.category || 'image' 
                 };
             }

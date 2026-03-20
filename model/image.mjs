@@ -7,6 +7,8 @@ export class Image {
     /** @type {string} **/
     id
     /** @type {string} **/
+    name;
+    /** @type {string} **/
     imageBlob;
     /** @type {'background'|'image'} **/
     category;
@@ -15,10 +17,12 @@ export class Image {
      * @param {string|null} id
      * @param {string} imageBlob
      * @param {'background'|'image'} [category='background']
+     * @param {string} [name='Untitled']
      * @param {Dependencies} [deps]
      */
-    constructor(id, imageBlob, category = 'background', deps = null) {
+    constructor(id, imageBlob, category = 'background', name = 'Untitled', deps = null) {
         this.id = id || (deps?.idGenerator ? deps.idGenerator.generate() : null);
+        this.name = name;
         this.imageBlob = imageBlob;
         this.category = category;
     }
@@ -29,6 +33,7 @@ export class Image {
     toData() {
         return {
             id: this.id,
+            name: this.name,
             imageBlob: this.imageBlob,
             category: this.category
         };
