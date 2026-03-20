@@ -1,4 +1,5 @@
 import { Modal } from './modal.mjs';
+import { ICONS } from '../globals/icons.mjs';
 
 /**
  * Modal for choosing the type of layer to add.
@@ -10,6 +11,10 @@ export class AddLayerModal extends Modal {
      */
     constructor(deps, container) {
         super(deps, container, 'view/templates/add-layer-modal.mustache');
+    }
+
+    async open() {
+        return super.open({ icons: ICONS });
     }
 
     onRender(dialog) {

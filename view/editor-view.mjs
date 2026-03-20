@@ -1,4 +1,5 @@
 import Mustache from 'mustache';
+import { ICONS } from '../globals/icons.mjs';
 
 export class EditorView {
     #container;
@@ -198,18 +199,6 @@ export class EditorView {
                     src = this.#urlManager.createUrl(img.id, img.imageBlob);
                 }
             }
-            const slotIcons = {
-                'top-left': 'box-align-top-left',
-                'top-middle': 'align-box-center-top',
-                'top-right': 'box-align-top-right',
-                'center-left': 'box-align-left',
-                'center-middle': 'align-box-center-middle',
-                'center-right': 'box-align-right',
-                'bottom-left': 'box-align-bottom-left',
-                'bottom-middle': 'align-box-center-bottom',
-                'bottom-right': 'box-align-bottom-right'
-            };
-
             return {
                 ...layer,
                 index,
@@ -218,7 +207,8 @@ export class EditorView {
                 isIconCallout: layer.type === 'icon-callout',
                 isImage: layer.type === 'image',
                 src,
-                slotIcon: slotIcons[layer.slot] || 'help'
+                slotIcon: ICONS.slots[layer.slot] || ICONS.slots.default,
+                layerIcon: ICONS.layerTypes[layer.type] || ICONS.slots.default
             };
         }) : [];
 
@@ -252,7 +242,8 @@ export class EditorView {
             fontStyles,
             fontStyleUrls,
             calloutStyles,
-            calloutStyleUrls
+            calloutStyleUrls,
+            icons: ICONS
         };
     }
 

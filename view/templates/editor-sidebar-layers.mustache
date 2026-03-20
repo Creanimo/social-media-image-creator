@@ -3,9 +3,9 @@
     {{#layers}}
     <wa-details class="layer-item" data-index="{{index}}">
         <div slot="summary" style="display: flex; align-items: center; gap: 10px; width: 100%;">
+            <wa-icon name="{{layerIcon}}" library="tabler" title="Type: {{type}}" style="font-size: 1.2rem; opacity: 0.7;"></wa-icon>
             <wa-icon name="{{slotIcon}}" library="tabler" title="Alignment: {{slot}}" style="font-size: 1.2rem; opacity: 0.7;"></wa-icon>
             <wa-input name="layer-{{index}}-name" value="{{name}}" size="small" onclick="event.stopPropagation();" onkeydown="if (event.key === ' ') event.stopPropagation();" style="flex: 1;"></wa-input>
-            <wa-text size="x-small" style="opacity: 0.5; white-space: nowrap;">({{slot}}, {{type}})</wa-text>
             {{#hasMultipleLayers}}
             <div class="wa-cluster" style="gap: 5px;">
                 <wa-button circle size="small" class="move-layer-up-btn" data-index="{{index}}" {{^canMoveUp}}disabled{{/canMoveUp}} onclick="event.stopPropagation();" title="Move Up">
