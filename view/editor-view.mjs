@@ -127,12 +127,6 @@ export class EditorView {
 
         const renderedSidebar = Mustache.render(this.#sidebarTemplate, viewData, partials);
         this.#sidebarContainer.innerHTML = renderedSidebar;
-
-        // Render modal if requested
-        if (uploadedImages.length >= 0) {
-            this.renderGalleryModal(uploadedImages, presetBackgrounds, imagePresets);
-            this.renderAddLayerModal();
-        }
     }
 
     /**
@@ -175,6 +169,24 @@ export class EditorView {
                 this.#preferences.set('editor-zoom', e.target.zoom);
             });
         }
+    }
+
+    renderSidebar(creation, { presets = [], bgSrc = null, presetBackgrounds = [], allImages = [], fontStyles = [], fontStyleUrls = [], calloutStyles = [], calloutStyleUrls = [] } = {}) {
+        const viewData = this.#prepareViewData(creation, { presets, bgSrc, presetBackgrounds, allImages, fontStyles, fontStyleUrls, calloutStyles, calloutStyleUrls });
+        const partials = {
+            'editor-sidebar-general': this.#sidebarGeneralTemplate,
+            'editor-sidebar-background': this.#sidebarBackgroundTemplate,
+            'editor-sidebar-layers': this.#sidebarLayersTemplate,
+            'layer-font': this.#layerFontTemplate,
+            'layer-icon': this.#layerIconTemplate,
+            'layer-icon-callout': this.#layerIconCalloutTemplate,
+            'layer-image': this.#layerImageTemplate,
+            'icon-picker': this.#iconPickerTemplate,
+            'color-picker': this.#colorPickerTemplate
+        };
+
+        const renderedSidebar = Mustache.render(this.#sidebarTemplate, viewData, partials);
+        this.#sidebarContainer.innerHTML = renderedSidebar;
     }
 
     #prepareViewData(creation, { presets = [], bgSrc = null, presetBackgrounds = [], allImages = [], fontStyles = [], fontStyleUrls = [], calloutStyles = [], calloutStyleUrls = [] } = {}) {
@@ -248,79 +260,6 @@ export class EditorView {
             calloutStyles,
             calloutStyleUrls
         };
-    }
-
-    /**
-     * @param {Array} images 
-     * @param {Array} presetBackgrounds
-     * @param {Array} imagePresets
-     */
-    renderGalleryModal(images, presetBackgrounds = [], imagePresets = []) {
-        const modalContainer = this.#container.querySelector('#modal-container');
-        if (!modalContainer) return;
-
-        // Manage URLs for modal images using central URL manager
-        const mappedImages = images.map(img => ({
-            id: img.id,
-            src: this.#urlManager.createUrl(img.id, img.imageBlob),
-            category: img.category,
-            source: 'my-uploads',
-            isBackground: img.category === 'background',
-            isImage: img.category === 'image',
-            isModal: true
-        }));
-
-        const mappedPresets = [
-            ...presetBackgrounds.map(bg => ({
-                ...bg,
-                src: this.#urlManager.createUrl(bg.id, bg.imageBlob),
-                category: 'background',
-                source: 'pre-made',
-                isBackground: true,
-                isModal: true
-            })),
-            ...imagePresets.map(preset => ({
-                ...preset,
-                src: this.#urlManager.createUrl(preset.id, preset.imageBlob),
-                category: 'image',
-                source: 'pre-made',
-                isImage: true,
-                isModal: true
-            }))
-        ];
-
-        const renderedModal = Mustache.render(this.#modalTemplate, { 
-            images: [...mappedImages, ...mappedPresets]
-        }, {
-            'image-card': this.#imageCardTemplate
-        });
-        
-        // Use single wrapper and overwrite content to avoid duplicate modals in DOM
-        let wrapper = modalContainer.querySelector('#gallery-modal-wrapper');
-        if (!wrapper) {
-            wrapper = document.createElement('div');
-            wrapper.id = 'gallery-modal-wrapper';
-            modalContainer.appendChild(wrapper);
-        }
-        wrapper.innerHTML = renderedModal;
-    }
-
-    /**
-     * Renders the add layer modal.
-     */
-    renderAddLayerModal() {
-        const modalContainer = this.#container.querySelector('#modal-container');
-        if (!modalContainer) return;
-
-        const renderedModal = Mustache.render(this.#addLayerModalTemplate, {});
-        
-        let wrapper = modalContainer.querySelector('#add-layer-modal-wrapper');
-        if (!wrapper) {
-            wrapper = document.createElement('div');
-            wrapper.id = 'add-layer-modal-wrapper';
-            modalContainer.appendChild(wrapper);
-        }
-        wrapper.innerHTML = renderedModal;
     }
 
     get colorPickerTemplate() {

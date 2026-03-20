@@ -40,6 +40,8 @@ export class Dependencies {
     assetIngestService;
     /** @type {import('../service/thumbnail-service.mjs').ThumbnailService} */
     thumbnailService;
+    /** @type {import('../service/modal-manager.mjs').ModalManager} */
+    modalManager;
 
     /** @type {import('../controller/font-style-controller.mjs').FontStyleController} */
     fontStyleController;
@@ -66,6 +68,7 @@ export class Dependencies {
      * @param {import('../service/import-json.mjs').ImportJson} [deps.importJson]
      * @param {import('../service/asset-ingest-service.mjs').AssetIngestService} [deps.assetIngestService]
      * @param {import('../service/thumbnail-service.mjs').ThumbnailService} [deps.thumbnailService]
+     * @param {import('../service/modal-manager.mjs').ModalManager} [deps.modalManager]
      * @param {import('../controller/font-style-controller.mjs').FontStyleController} [deps.fontStyleController]
      * @param {import('../controller/callout-style-controller.mjs').CalloutStyleController} [deps.calloutStyleController]
      */
@@ -73,7 +76,7 @@ export class Dependencies {
         idGenerator, database, imageRepository, creationRepository, 
         backgroundRepository, imagePresetRepository, presetCreationRepository, thumbnailRepository, imageUrlManager, 
         preferences, categoryUtils, imageService, layerFactory, exportAsImage, 
-        exportAsJson, importJson, assetIngestService, thumbnailService,
+        exportAsJson, importJson, assetIngestService, thumbnailService, modalManager,
         fontStyleController, calloutStyleController
     } = {}) {
         this.idGenerator = idGenerator;
@@ -94,6 +97,7 @@ export class Dependencies {
         this.importJson = importJson;
         this.assetIngestService = assetIngestService;
         this.thumbnailService = thumbnailService;
+        this.modalManager = modalManager;
         this.fontStyleController = fontStyleController;
         this.calloutStyleController = calloutStyleController;
     }

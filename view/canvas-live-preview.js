@@ -136,7 +136,7 @@ const signalReady = async () => {
                     const timeout = setTimeout(() => {
                         console.warn('[canvas-live-preview] wa-icon load timed out', el.name);
                         resolve();
-                    }, 2000);
+                    }, 1000); // Reduced timeout to 1s
                     el.addEventListener('wa-load', () => {
                         clearTimeout(timeout);
                         resolve();

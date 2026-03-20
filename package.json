@@ -25,7 +25,8 @@
     "@zumer/snapdom": "^2.0.2",
     "iconify-picker": "^0.7.2",
     "immer": "^11.1.4",
-    "mustache": "^4.2.0"
+    "mustache": "^4.2.0",
+    "vanilla-image-cropper": "^1.4.0"
   },
   "devDependencies": {
     "chai": "^6.2.2",

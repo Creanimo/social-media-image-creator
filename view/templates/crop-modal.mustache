@@ -1,0 +1,14 @@
+<wa-dialog id="crop-modal" label="Crop Image" style="--width: 80vw;">
+    <div id="crop-wrapper" style="min-height: 400px; max-height: 60vh; overflow: hidden; position: relative;">
+        <!-- Container for ImageCropper -->
+        <div id="crop-container"></div>
+    </div>
+    <div slot="footer">
+        <wa-button id="crop-cancel">Cancel</wa-button>
+        <wa-button id="crop-no-crop">Don't crop</wa-button>
+        <wa-button id="crop-save-new" variant="primary">Save as New</wa-button>
+        {{#showOverride}}
+        <wa-button id="crop-override" variant="success">Override Original</wa-button>
+        {{/showOverride}}
+    </div>
+</wa-dialog>

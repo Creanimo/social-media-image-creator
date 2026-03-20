@@ -1,3 +1,4 @@
+import { AddLayerModal } from '../view/add-layer-modal.mjs';
 import { EditorView } from '../view/editor-view.mjs';
 import { Creation } from '../model/creation.mjs';
 import { FontLayer } from '../model/font-layer.mjs';
@@ -19,15 +20,32 @@ import { ImageLayerFormAdapter } from '../adapter/layer-form-adapters/image-laye
 import { LivePreviewPipeline } from './live-preview-pipeline.mjs';
 
 export class EditorController {
+    /** @type {Object} */
     #deps;
+    /** @type {EditorView} */
     #view;
+    /** @type {Creation|null} */
     #currentCreation;
+    /** @type {Array<Object>} */
     #presets;
+    /** @type {FontStyleController} */
     #fontStyleController;
+    /** @type {CalloutStyleController} */
     #calloutStyleController;
+    /** @type {GalleryFlow} */
     #galleryFlow;
+    /** @type {LayerFormRegistry} */
     #formRegistry;
+    /** @type {AddLayerModal|null} */
+    #addLayerModal;
 
+    /**
+     * Creates an instance of EditorController.
+     * 
+     * @param {Object} deps - Dependency injection container.
+     * @param {HTMLElement} container - Main container for the editor view.
+     * @param {HTMLElement} sidebarContainer - Container for the editor sidebar.
+     */
     constructor(deps, container, sidebarContainer) {
         this.#deps = deps;
         this.#view = new EditorView(container, sidebarContainer, deps.imageUrlManager, deps.preferences);
@@ -36,7 +54,8 @@ export class EditorController {
         this.#fontStyleController = new FontStyleController();
         this.#calloutStyleController = new CalloutStyleController();
 
-        this.#galleryFlow = null;
+        this.#galleryFlow = new GalleryFlow(deps);
+        this.#addLayerModal = null;
 
         this.#formRegistry = new LayerFormRegistry()
             .register(new FontLayerFormAdapter())
@@ -45,6 +64,12 @@ export class EditorController {
             .register(new ImageLayerFormAdapter());
     }
 
+    /**
+     * Initializes the controller by loading presets and styles, then refreshing the view.
+     * Triggers a full page/sidebar refresh.
+     * 
+     * @returns {Promise<void>}
+     */
     async init() {
         // Load presets
         const [presetsRes, fontStylesRes, calloutStylesRes] = await Promise.all([
@@ -59,6 +84,15 @@ export class EditorController {
         await this.refresh();
     }
 
+    /**
+     * Moves a layer at the given index in the specified direction within its slot.
+     * Triggers a canvas-only refresh.
+     * 
+     * @param {number} index - Index of the layer to move.
+     * @param {number} direction - Direction: -1 for up, 1 for down.
+     * @returns {Promise<void>}
+     * @private
+     */
     async #moveLayer(index, direction) {
         const layers = [...this.#currentCreation.layers];
         const layer = layers[index];
@@ -87,22 +121,44 @@ export class EditorController {
             [layers[index], layers[targetSlotIndex]] = [layers[targetSlotIndex], layers[index]];
             this.#currentCreation = this.#currentCreation.withLayers(layers);
             await this.#deps.creationRepository.save(this.#currentCreation);
-            await this.#updateView();
+            await this.#updateView(false);
         }
     }
 
+    /**
+     * Brings the layer at the given index to the front within its slot.
+     * Triggers a canvas-only refresh.
+     * 
+     * @param {number} index - Index of the layer.
+     * @returns {Promise<void>}
+     * @private
+     */
     async #bringToFront(index) {
         this.#currentCreation = this.#currentCreation.bringToFront(index);
         await this.#deps.creationRepository.save(this.#currentCreation);
-        await this.#updateView();
+        await this.#updateView(false);
     }
 
+    /**
+     * Sends the layer at the given index to the back within its slot.
+     * Triggers a canvas-only refresh.
+     * 
+     * @param {number} index - Index of the layer.
+     * @returns {Promise<void>}
+     * @private
+     */
     async #sendToBack(index) {
         this.#currentCreation = this.#currentCreation.sendToBack(index);
         await this.#deps.creationRepository.save(this.#currentCreation);
-        await this.#updateView();
+        await this.#updateView(false);
     }
 
+    /**
+     * Refreshes the current creation from the URL hash or loads the default creation.
+     * Triggers a full page/sidebar refresh.
+     * 
+     * @returns {Promise<void>}
+     */
     async refresh() {
         const hash = window.location.hash;
         const urlParams = new URLSearchParams(hash.includes('?') ? hash.split('?')[1] : '');
@@ -140,6 +196,14 @@ export class EditorController {
         await this.#updateView();
     }
 
+    /**
+     * Updates the editor view.
+     * 
+     * @param {boolean} [fullRefresh=true] - If true, re-renders both the sidebar and the canvas (full refresh). 
+     *                                      If false, re-renders only the canvas content.
+     * @returns {Promise<void>}
+     * @private
+     */
     async #updateView(fullRefresh = true) {
         if (fullRefresh) {
             const uploadedImages = await this.#deps.imageRepository.getAll(this.#deps);
@@ -170,13 +234,6 @@ export class EditorController {
 
             this.#view.render(this.#currentCreation, renderData);
             
-            // Initialize GalleryFlow now that the modal is rendered
-            const modal = this.#view.container.querySelector('#gallery-modal');
-            if (modal) {
-                this.#galleryFlow = new GalleryFlow(this.#deps, modal);
-                await this.#galleryFlow.refresh();
-            }
-
             await this.#bindEvents();
         } else {
             let bgSrc = null;
@@ -207,6 +264,21 @@ export class EditorController {
         }
     }
 
+    /**
+     * Binds all event listeners for the editor interface.
+     * 
+     * This method handles:
+     * - Full refreshes: structural changes (add/remove layer, move layer), gallery selections, and preset changes.
+     * - Canvas refreshes: standard form submissions where no structural change is detected.
+     * - Live updates (no refresh): real-time canvas preview for sliders (wa-slider), size inputs (wa-input), 
+     *   textareas (wa-textarea), and name inputs (wa-input). These use the LivePreviewPipeline.
+     * - Auto-saves: debounced background saving without view refresh.
+     * 
+     * Note: There is currently no sidebar-only refresh implemented in this controller.
+     * 
+     * @returns {Promise<void>}
+     * @private
+     */
     async #bindEvents() {
         const container = this.#view.container;
         const sidebar = this.#view.sidebarContainer;
@@ -306,7 +378,9 @@ export class EditorController {
             updatedCreation = updatedCreation.withLayers(updatedLayers);
 
             if (updatedCreation !== this.#currentCreation) {
-                const structuralChange = updatedCreation.layers.length !== this.#currentCreation.layers.length;
+                const structuralChange = 
+                    updatedCreation.layers.length !== this.#currentCreation.layers.length ||
+                    updatedCreation.backgroundImageId !== this.#currentCreation.backgroundImageId;
                 this.#currentCreation = updatedCreation;
                 await this.#deps.creationRepository.save(this.#currentCreation);
                 
@@ -482,26 +556,26 @@ export class EditorController {
             }
         });
 
-        // Add Layer Modal Open
-        sidebar.querySelector('#add-layer-btn')?.addEventListener('click', () => {
-            const modal = container.querySelector('#add-layer-modal');
-            modal?.show();
-        });
+        // Add Layer Modal
+        sidebar.querySelector('#add-layer-btn')?.addEventListener('click', async () => {
+            try {
+                this.#addLayerModal = new AddLayerModal(this.#deps);
+                const type = await this.#addLayerModal.open();
+                
+                // Wait for the AddLayerModal to be fully closed before opening the next modal
+                // This prevents DOM interference in the shared #modal-container
+                await this.#addLayerModal.hide();
 
-        // Add Layer from Modal
-        const addLayerModal = container.querySelector('#add-layer-modal');
-        addLayerModal?.querySelectorAll('.add-layer-type-btn').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const type = btn.getAttribute('data-type');
                 if (type === 'image') {
-                    addLayerModal.open = false;
                     if (this.#galleryFlow) {
+                        // Small delay to ensure the AddLayerModal container is cleared before GalleryFlow starts
+                        // although the new Modal implementation should handle this by waiting for wa-after-hide
                         await this.#galleryFlow.open(['images'], 'layer', async ({ id }) => {
                             const newLayer = await this.#deps.layerFactory.createFromPreset('image');
                             const updatedLayer = newLayer.withImageId(id);
                             this.#currentCreation = this.#currentCreation.addLayer(updatedLayer);
                             await this.#deps.creationRepository.save(this.#currentCreation);
-                            await this.#updateView();
+                            await this.refresh();
                         });
                     }
                     return;
@@ -510,12 +584,11 @@ export class EditorController {
                 const newLayer = await this.#deps.layerFactory.createFromPreset(type);
                 this.#currentCreation = this.#currentCreation.addLayer(newLayer);
                 await this.#deps.creationRepository.save(this.#currentCreation);
-                addLayerModal.open = false;
-                await this.#updateView();
-            });
+                await this.refresh();
+            } catch (e) {
+                // Cancelled
+            }
         });
-
-        addLayerModal?.querySelector('#close-add-layer-modal')?.addEventListener('click', () => addLayerModal.open = false);
 
         // Remove Layer
         sidebar.querySelectorAll('.remove-layer-btn').forEach(btn => {
@@ -526,7 +599,7 @@ export class EditorController {
                 newLayers.splice(index, 1);
                 this.#currentCreation = this.#currentCreation.withLayers(newLayers);
                 await this.#deps.creationRepository.save(this.#currentCreation);
-                await this.#updateView();
+                await this.refresh();
             });
         });
 
@@ -600,7 +673,7 @@ export class EditorController {
                 await this.#galleryFlow.open(['backgrounds'], 'background', async ({ id }) => {
                     this.#currentCreation = await this.#deps.imageService.addImageToCreation(this.#currentCreation, id, 'background');
                     await this.#deps.creationRepository.save(this.#currentCreation);
-                    await this.#updateView();
+                    await this.refresh();
                 });
             }
         });
@@ -613,7 +686,7 @@ export class EditorController {
                     const updatedLayer = newLayer.withImageId(id);
                     this.#currentCreation = this.#currentCreation.addLayer(updatedLayer);
                     await this.#deps.creationRepository.save(this.#currentCreation);
-                    await this.#updateView();
+                    await this.refresh();
                 });
             }
         });
@@ -653,7 +726,6 @@ export class EditorController {
         });
 
         // Modal events
-        const modal = container.querySelector('#gallery-modal');
-        modal?.querySelector('#close-gallery-modal')?.addEventListener('click', () => modal.open = false);
+        // (Handled by ModalManager and Modal classes)
     }
 }

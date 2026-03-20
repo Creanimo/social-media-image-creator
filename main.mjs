@@ -26,6 +26,7 @@ import { AssetIngestService } from './service/asset-ingest-service.mjs';
 import { ExportAsImage } from './service/export-as-image.mjs';
 import { ExportAsJson } from './service/export-as-json.mjs';
 import { ImageService } from './service/image-service.mjs';
+import { ModalManager } from './service/modal-manager.mjs';
 import { ImportJson } from './service/import-json.mjs';
 import { LayerFactory } from './service/layer-factory.mjs';
 import { ThumbnailService } from './service/thumbnail-service.mjs';
@@ -59,6 +60,7 @@ async function init() {
     deps.importJson = new ImportJson(deps);
     deps.assetIngestService = new AssetIngestService(deps);
     deps.thumbnailService = new ThumbnailService(deps);
+    deps.modalManager = new ModalManager(deps.idGenerator);
 
     // 2. Render Base Frame
     const backgroundIngestController = new BackgroundIngestController(deps);

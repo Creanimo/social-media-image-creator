@@ -20,10 +20,14 @@ export class ImageService {
      * Saves an uploaded file as an Image with the given category.
      * @param {File|Blob} file
      * @param {'background'|'image'} category
+     * @param {string} [id] Optional ID to override existing image
      * @returns {Promise<import('../model/image.mjs').Image>}
      */
-    async saveUpload(file, category = 'background') {
-        const img = new Image(null, file, category, this.#deps);
+    async saveUpload(file, category = 'background', id = null) {
+        if (id) {
+            this.#deps.imageUrlManager.revoke(id);
+        }
+        const img = new Image(id, file, category, this.#deps);
         await this.#deps.imageRepository.save(img);
         return img;
     }

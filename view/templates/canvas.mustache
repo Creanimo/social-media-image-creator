@@ -68,7 +68,7 @@
             border: 1px solid #ccc;
             width: {{creation.width}}px;
             height: {{creation.height}}px;
-            background-image: url({{{bgSrc}}});
+            background-image: {{#bgSrc}}url({{{bgSrc}}}){{/bgSrc}}{{^bgSrc}}none{{/bgSrc}};
             background-size: {{creation.backgroundScalePercent}}% auto;
             background-position: calc(50% + {{creation.backgroundX}}px) calc(50% + {{creation.backgroundY}}px);
             background-repeat: no-repeat;

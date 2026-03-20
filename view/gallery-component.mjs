@@ -122,11 +122,16 @@ export class GalleryComponent {
         fileInput?.addEventListener('change', async (e) => {
             const file = e.target.files[0];
             const category = fileInput.getAttribute('data-target-category');
+            console.log('GalleryComponent: file input change', { file, category });
             if (file && this.#onUpload) {
                 const state = this.getState();
                 // Normalize category from tab id (e.g., "backgrounds" -> "background")
                 const normalizedCategory = this.#deps.categoryUtils.normalize(category);
-                await this.#onUpload(file, normalizedCategory);
+                try {
+                    await this.#onUpload(file, normalizedCategory);
+                } catch (err) {
+                    console.error('GalleryComponent: onUpload error', err);
+                }
                 e.target.value = '';
                 fileInput.removeAttribute('data-target-category');
                 // The controller will typically call refresh() which calls render() and restoreState()
@@ -147,10 +152,12 @@ export class GalleryComponent {
         const selectButtons = container.querySelectorAll('.select-image-btn');
         selectButtons.forEach(btn => {
             btn.addEventListener('click', (e) => {
+                e.preventDefault();
                 e.stopPropagation();
                 const id = btn.getAttribute('data-id');
                 const panel = btn.closest('wa-tab-panel');
                 const tabId = panel?.getAttribute('name');
+                console.log('GalleryComponent: select button clicked', { id, tabId });
                 if (id && this.#onSelect) {
                     this.#onSelect(id, tabId);
                 }
