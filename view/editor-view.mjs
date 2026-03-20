@@ -190,12 +190,6 @@ export class EditorView {
     }
 
     #prepareViewData(creation, { presets = [], bgSrc = null, presetBackgrounds = [], allImages = [], fontStyles = [], fontStyleUrls = [], calloutStyles = [], calloutStyleUrls = [] } = {}) {
-        const slotIds = [
-            'top-left', 'top-middle', 'top-right',
-            'center-left', 'center-middle', 'center-right',
-            'bottom-left', 'bottom-middle', 'bottom-right'
-        ];
-
         const layersWithMeta = creation ? creation.layers.map((layer, index) => {
             let src = null;
             if (layer.type === 'image' && layer.imageId) {
@@ -204,6 +198,18 @@ export class EditorView {
                     src = this.#urlManager.createUrl(img.id, img.imageBlob);
                 }
             }
+            const slotIcons = {
+                'top-left': 'box-align-top-left',
+                'top-middle': 'align-box-center-top',
+                'top-right': 'box-align-top-right',
+                'center-left': 'box-align-left',
+                'center-middle': 'align-box-center-middle',
+                'center-right': 'box-align-right',
+                'bottom-left': 'box-align-bottom-left',
+                'bottom-middle': 'align-box-center-bottom',
+                'bottom-right': 'box-align-bottom-right'
+            };
+
             return {
                 ...layer,
                 index,
@@ -211,36 +217,25 @@ export class EditorView {
                 isIcon: layer.type === 'icon',
                 isIconCallout: layer.type === 'icon-callout',
                 isImage: layer.type === 'image',
-                src
+                src,
+                slotIcon: slotIcons[layer.slot] || 'help'
             };
         }) : [];
 
-        const layersWithMovement = layersWithMeta.map(layer => {
-            const slotLayers = layersWithMeta.filter(l => l.slot === layer.slot);
-            const indexInSlot = slotLayers.findIndex(l => l.index === layer.index);
-            const sortedLayers = [...layersWithMeta].sort((a, b) => a.zIndex - b.zIndex);
-            const maxZ = sortedLayers.length > 0 ? sortedLayers[sortedLayers.length - 1].zIndex : 0;
-            const minZ = sortedLayers.length > 0 ? sortedLayers[0].zIndex : 0;
+        const sortedGlobalLayers = [...layersWithMeta].sort((a, b) => b.zIndex - a.zIndex); // Descending Z order for sidebar
+        const maxZ = sortedGlobalLayers.length > 0 ? sortedGlobalLayers[0].zIndex : 0;
+        const minZ = sortedGlobalLayers.length > 0 ? sortedGlobalLayers[sortedGlobalLayers.length - 1].zIndex : 0;
 
+        const layersWithMovement = sortedGlobalLayers.map((layer, sortedIndex) => {
             return {
                 ...layer,
-                canMoveUp: indexInSlot > 0,
-                canMoveDown: indexInSlot < slotLayers.length - 1,
-                hasMultipleInSlot: slotLayers.length > 1,
-                isAtFront: layer.zIndex === maxZ && sortedLayers.length > 1,
-                isAtBack: layer.zIndex === minZ && sortedLayers.length > 1
+                canMoveUp: sortedIndex > 0,
+                canMoveDown: sortedIndex < sortedGlobalLayers.length - 1,
+                hasMultipleLayers: sortedGlobalLayers.length > 1,
+                isAtFront: layer.zIndex === maxZ && sortedGlobalLayers.length > 1,
+                isAtBack: layer.zIndex === minZ && sortedGlobalLayers.length > 1
             };
         });
-
-        const slots = slotIds.map(id => ({
-            id,
-            layers: layersWithMovement.filter(l => l.slot === id)
-        }));
-
-        const filledSlots = slots.filter(s => s.layers.length > 0).map((s, idx, arr) => ({
-            ...s,
-            isLast: idx === arr.length - 1
-        }));
 
         return {
             creation: creation ? {
@@ -249,8 +244,7 @@ export class EditorView {
                 layers: layersWithMovement,
                 widthTimesTwo: creation.width * 2
             } : null,
-            slots,
-            filledSlots,
+            layers: layersWithMovement,
             presets,
             bgSrc: bgSrc || 'none',
             currentPresetName: presets.find(p => p.width === creation?.width && p.height === creation?.height)?.name,

@@ -85,49 +85,46 @@ export class EditorController {
     }
 
     /**
-     * Moves a layer at the given index in the specified direction within its slot.
-     * Triggers a canvas-only refresh.
+     * Moves a layer at the given index in the specified direction.
+     * Triggers a full sidebar and canvas refresh.
      * 
      * @param {number} index - Index of the layer to move.
      * @param {number} direction - Direction: -1 for up, 1 for down.
      * @returns {Promise<void>}
-     * @private
      */
     async #moveLayer(index, direction) {
         const layers = [...this.#currentCreation.layers];
         const layer = layers[index];
-        const slot = layer.slot;
 
-        // Find the index of the next/previous layer in the same slot
-        let targetSlotIndex = -1;
-        if (direction === -1) { // Up
-            for (let i = index - 1; i >= 0; i--) {
-                if (layers[i].slot === slot) {
-                    targetSlotIndex = i;
-                    break;
-                }
-            }
-        } else { // Down
-            for (let i = index + 1; i < layers.length; i++) {
-                if (layers[i].slot === slot) {
-                    targetSlotIndex = i;
-                    break;
-                }
-            }
-        }
+        // Find the index of the next/previous layer in the global sorted list by z-index
+        const sortedLayers = layers
+            .sort((a, b) => b.zIndex - a.zIndex); // Descending Z order for sidebar
 
-        if (targetSlotIndex !== -1) {
-            // Swap them
-            [layers[index], layers[targetSlotIndex]] = [layers[targetSlotIndex], layers[index]];
-            this.#currentCreation = this.#currentCreation.withLayers(layers);
+        const indexInSorted = sortedLayers.findIndex(l => l.id === layer.id);
+        const targetIndexInSorted = indexInSorted + direction;
+
+        if (targetIndexInSorted >= 0 && targetIndexInSorted < sortedLayers.length) {
+            const targetLayer = sortedLayers[targetIndexInSorted];
+            
+            // Swap their z-index
+            const z1 = layer.zIndex;
+            const z2 = targetLayer.zIndex;
+
+            const newLayers = this.#currentCreation.layers.map(l => {
+                if (l.id === layer.id) return l.withZIndex(z2);
+                if (l.id === targetLayer.id) return l.withZIndex(z1);
+                return l;
+            });
+
+            this.#currentCreation = this.#currentCreation.withLayers(newLayers);
             await this.#deps.creationRepository.save(this.#currentCreation);
-            await this.#updateView(false);
+            await this.#updateView(true); // Full refresh to update sidebar buttons
         }
     }
 
     /**
-     * Brings the layer at the given index to the front within its slot.
-     * Triggers a canvas-only refresh.
+     * Brings the layer at the given index to the front.
+     * Triggers a full sidebar and canvas refresh.
      * 
      * @param {number} index - Index of the layer.
      * @returns {Promise<void>}
@@ -136,12 +133,12 @@ export class EditorController {
     async #bringToFront(index) {
         this.#currentCreation = this.#currentCreation.bringToFront(index);
         await this.#deps.creationRepository.save(this.#currentCreation);
-        await this.#updateView(false);
+        await this.#updateView(true); // Full refresh to update buttons
     }
 
     /**
-     * Sends the layer at the given index to the back within its slot.
-     * Triggers a canvas-only refresh.
+     * Sends the layer at the given index to the back.
+     * Triggers a full sidebar and canvas refresh.
      * 
      * @param {number} index - Index of the layer.
      * @returns {Promise<void>}
@@ -150,7 +147,7 @@ export class EditorController {
     async #sendToBack(index) {
         this.#currentCreation = this.#currentCreation.sendToBack(index);
         await this.#deps.creationRepository.save(this.#currentCreation);
-        await this.#updateView(false);
+        await this.#updateView(true); // Full refresh to update buttons
     }
 
     /**
