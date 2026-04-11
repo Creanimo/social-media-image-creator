@@ -4,12 +4,17 @@
 export class Router {
     #routes;
     #currentRoute;
+    #window;
 
-    constructor() {
+    /**
+     * @param {Window} [win] Optional window object for testing (dependency injection)
+     */
+    constructor(win = window) {
         this.#routes = new Map();
         this.#currentRoute = null;
+        this.#window = win;
 
-        window.addEventListener('hashchange', () => this.#handleHashChange());
+        this.#window.addEventListener('hashchange', () => this.#handleHashChange());
     }
 
     /**
@@ -33,11 +38,19 @@ export class Router {
      * @param {string} path 
      */
     navigate(path) {
-        window.location.hash = path;
+        if (this.#window.location.hash === path) {
+            this.#handleHashChange();
+        } else {
+            this.#window.location.hash = path;
+        }
     }
 
     #handleHashChange() {
-        const hash = window.location.hash || '#gallery';
+        const hash = this.#window.location.hash || '#gallery';
+        if (this.#window.location.hash === '' && hash === '#gallery') {
+            this.navigate('#gallery');
+            return;
+        }
         // Extract the base path (the part before the '?')
         const basePath = hash.split('?')[0];
         const handler = this.#routes.get(basePath);

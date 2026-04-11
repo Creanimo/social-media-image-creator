@@ -74,7 +74,7 @@ export class ImportJson {
             }
 
             // Create and save new image asset into the image library (not as a preset)
-            const image = new Image(imageData.id, imageBlob, imageData.category || 'image', this.#deps);
+            const image = new Image(imageData.id, imageBlob, imageData.category || 'image', imageData.name || 'Untitled', this.#deps);
             await this.#deps.imageRepository.save(image);
         }
     }
