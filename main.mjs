@@ -5,6 +5,7 @@ import { IdGenerator } from './util/id-generator.mjs';
 import { Database } from './util/database.mjs';
 import { Preferences } from './util/preferences.mjs';
 import { ImageUrlManager } from './util/image-url-manager.mjs';
+import { MarkdownRenderer } from './util/markdown-renderer.mjs';
 import { ImageRepository } from './repository/image-repository.mjs';
 import { CreationRepository } from './repository/creation-repository.mjs';
 import { BackgroundRepository } from './repository/background-repository.mjs';
@@ -48,6 +49,7 @@ async function init() {
         imageUrlManager: new ImageUrlManager(),
         preferences: new Preferences(),
         categoryUtils: new CategoryUtils(),
+        markdownRenderer: new MarkdownRenderer(),
         fontStyleController,
         calloutStyleController
     });

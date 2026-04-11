@@ -4,6 +4,17 @@ import { LayerFormAdapter } from '../layer-form-adapter.mjs';
  * Adapter for FontLayer.
  */
 export class FontLayerFormAdapter extends LayerFormAdapter {
+    /** @type {import('../../util/markdown-renderer.mjs').MarkdownRenderer} */
+    #markdownRenderer;
+
+    /**
+     * @param {import('../../util/markdown-renderer.mjs').MarkdownRenderer} markdownRenderer
+     */
+    constructor(markdownRenderer) {
+        super();
+        this.#markdownRenderer = markdownRenderer;
+    }
+
     get type() {
         return 'font';
     }
@@ -12,7 +23,7 @@ export class FontLayerFormAdapter extends LayerFormAdapter {
         let updatedLayer = super.extractUpdated(layer, sidebar, index);
 
         const fontText = sidebar.querySelector(`wa-input[name="layer-${index}-name"]`)?.value || '';
-        const html = fontText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/\n/g, '<br>');
+        const html = this.#markdownRenderer.render(fontText);
         const cappedName = fontText.substring(0, 30);
         
         const slotValue = sidebar.querySelector(`wa-select[name="layer-${index}-slot"]`)?.value;

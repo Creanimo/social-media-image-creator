@@ -24,6 +24,8 @@ export class Dependencies {
     preferences;
     /** @type {import('./category-utils.mjs').CategoryUtils} */
     categoryUtils;
+    /** @type {import('./markdown-renderer.mjs').MarkdownRenderer} */
+    markdownRenderer;
 
     // Services
     /** @type {import('../service/image-service.mjs').ImageService} */
@@ -61,6 +63,7 @@ export class Dependencies {
      * @param {import('./image-url-manager.mjs').ImageUrlManager} [deps.imageUrlManager]
      * @param {import('./preferences.mjs').Preferences} [deps.preferences]
      * @param {import('./category-utils.mjs').CategoryUtils} [deps.categoryUtils]
+     * @param {import('./markdown-renderer.mjs').MarkdownRenderer} [deps.markdownRenderer]
      * @param {import('../service/image-service.mjs').ImageService} [deps.imageService]
      * @param {import('../service/layer-factory.mjs').LayerFactory} [deps.layerFactory]
      * @param {import('../service/export-as-image.mjs').ExportAsImage} [deps.exportAsImage]
@@ -75,7 +78,7 @@ export class Dependencies {
     constructor({ 
         idGenerator, database, imageRepository, creationRepository, 
         backgroundRepository, imagePresetRepository, presetCreationRepository, thumbnailRepository, imageUrlManager, 
-        preferences, categoryUtils, imageService, layerFactory, exportAsImage, 
+        preferences, categoryUtils, markdownRenderer, imageService, layerFactory, exportAsImage, 
         exportAsJson, importJson, assetIngestService, thumbnailService, modalManager,
         fontStyleController, calloutStyleController
     } = {}) {
@@ -90,6 +93,7 @@ export class Dependencies {
         this.imageUrlManager = imageUrlManager;
         this.preferences = preferences;
         this.categoryUtils = categoryUtils;
+        this.markdownRenderer = markdownRenderer;
         this.imageService = imageService;
         this.layerFactory = layerFactory;
         this.exportAsImage = exportAsImage;

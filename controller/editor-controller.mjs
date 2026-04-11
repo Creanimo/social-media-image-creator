@@ -58,7 +58,7 @@ export class EditorController {
         this.#addLayerModal = null;
 
         this.#formRegistry = new LayerFormRegistry()
-            .register(new FontLayerFormAdapter())
+            .register(new FontLayerFormAdapter(deps.markdownRenderer))
             .register(new IconLayerFormAdapter())
             .register(new IconCalloutLayerFormAdapter())
             .register(new ImageLayerFormAdapter());

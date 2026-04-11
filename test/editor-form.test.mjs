@@ -1,5 +1,6 @@
 import { expect } from '../node_modules/chai/index.js';
 import { FontLayerFormAdapter } from '../adapter/layer-form-adapters/font-layer-form-adapter.mjs';
+import { MarkdownRenderer } from '../util/markdown-renderer.mjs';
 import { FontLayer } from '../model/font-layer.mjs';
 import { ImageLayer } from '../model/image-layer.mjs';
 import { LayerFormAdapter } from '../adapter/layer-form-adapter.mjs';
@@ -28,9 +29,11 @@ describe('Editor Form Adapters', () => {
     describe('FontLayerFormAdapter', () => {
         let adapter;
         let layer;
+        let markdownRenderer;
 
         beforeEach(() => {
-            adapter = new FontLayerFormAdapter();
+            markdownRenderer = new MarkdownRenderer();
+            adapter = new FontLayerFormAdapter(markdownRenderer);
             layer = new FontLayer('test-id', {
                 name: 'Initial Name',
                 text: 'Initial Text',
