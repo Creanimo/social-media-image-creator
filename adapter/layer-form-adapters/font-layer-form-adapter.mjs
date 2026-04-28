@@ -24,7 +24,6 @@ export class FontLayerFormAdapter extends LayerFormAdapter {
 
         const fontText = sidebar.querySelector(`wa-input[name="layer-${index}-name"]`)?.value || '';
         const html = this.#markdownRenderer.render(fontText);
-        const cappedName = fontText.substring(0, 30);
         
         const slotValue = sidebar.querySelector(`wa-select[name="layer-${index}-slot"]`)?.value;
         const styleIdValue = sidebar.querySelector(`wa-select[name="layer-${index}-styleId"]`)?.value;
@@ -37,7 +36,7 @@ export class FontLayerFormAdapter extends LayerFormAdapter {
         
         if (slotValue !== undefined) updatedLayer = updatedLayer.withSlot(slotValue);
         if (styleIdValue !== undefined) updatedLayer = updatedLayer.withStyleId(styleIdValue);
-        if (fontText !== undefined) updatedLayer = updatedLayer.withText(fontText).withHtml(html).withName(cappedName);
+        if (fontText !== undefined) updatedLayer = updatedLayer.withText(fontText).withHtml(html).withName(fontText);
         if (sizeValue !== undefined) updatedLayer = updatedLayer.withSize(sizeValue);
         if (widthValue !== undefined) updatedLayer = updatedLayer.withWidth(widthValue);
         if (!isNaN(offsetXValue)) updatedLayer = updatedLayer.withOffsetX(offsetXValue);
