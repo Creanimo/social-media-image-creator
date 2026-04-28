@@ -17,14 +17,12 @@ export class ImportJson {
     }
 
     /**
-     * Ingests a creation and its images from a JSON string.
-     * @param {string} json
+     * Ingests a creation and its images from a JSON object.
+     * @param {Object} data
+     * @param {boolean} [isPreset=false] If true, saves to presetCreationRepository instead of creationRepository
      * @returns {Promise<Creation>}
      */
-    async importFromJson(json) {
-        /** @type {{creation: Object, images: Array}} */
-        const data = JSON.parse(json);
-
+    async importFromObject(data, isPreset = false) {
         if (!data.creation) {
             throw new Error('Invalid JSON: missing creation data');
         }
@@ -34,19 +32,27 @@ export class ImportJson {
             await this.#ingestImages(data.images);
         }
 
-        // 2. Prepare the creation
-        // We might want to generate a new ID if we don't want to override existing ones, 
-        // but the requirement says "not override or add them" only for preset assets.
-        // For the creation itself, we usually want to treat it as a new creation or allow overriding.
-        // Let's assume we want to preserve the creation as it was.
-        
         const creationData = data.creation;
         const creation = new Creation(creationData.id, creationData, this.#deps);
 
         // 3. Save creation
-        await this.#deps.creationRepository.save(creation);
+        if (isPreset) {
+            await this.#deps.presetCreationRepository.save(creation);
+        } else {
+            await this.#deps.creationRepository.save(creation);
+        }
 
         return creation;
+    }
+
+    /**
+     * Ingests a creation and its images from a JSON string.
+     * @param {string} json
+     * @returns {Promise<Creation>}
+     */
+    async importFromJson(json) {
+        const data = JSON.parse(json);
+        return this.importFromObject(data);
     }
 
     /**
@@ -69,6 +75,12 @@ export class ImportJson {
 
             // Convert Base64 back to Blob if needed
             let imageBlob = imageData.imageBlob;
+            
+            if (!imageBlob) {
+                console.warn(`[ImportJson] Image ${imageData.id} has no blob and was not found in any repository. Skipping.`);
+                continue;
+            }
+
             if (typeof imageBlob === 'string' && imageBlob.startsWith('data:')) {
                 imageBlob = await this.#base64ToBlob(imageBlob);
             }

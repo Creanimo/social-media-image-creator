@@ -58,8 +58,14 @@ export class PresetCreationIngestController {
                     }
                 }
 
-                await this.#deps.presetCreationRepository.save(creationData);
-                console.log(`[${logTag}] Successfully ingested preset creation ${creationData.id}`);
+                if (creationData.creation) {
+                    // It's a full template with metadata and images array
+                    await this.#deps.importJson.importFromObject(creationData, true);
+                } else {
+                    // It's just the creation object itself
+                    await this.#deps.presetCreationRepository.save(creationData);
+                }
+                console.log(`[${logTag}] Successfully ingested preset creation ${creationData.id || creationData.creation?.id}`);
             }
         } catch (error) {
             console.error(`[${logTag}] Ingestion failed:`, error);
