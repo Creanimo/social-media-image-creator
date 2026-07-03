@@ -10,6 +10,7 @@ import { ImageRepository } from './repository/image-repository.mjs';
 import { CreationRepository } from './repository/creation-repository.mjs';
 import { BackgroundRepository } from './repository/background-repository.mjs';
 import { ImagePresetRepository } from './repository/image-preset-repository.mjs';
+import { LogoRepository } from './repository/logo-repository.mjs';
 import { PresetCreationRepository } from './repository/preset-creation-repository.mjs';
 import { ThumbnailRepository } from './repository/thumbnail-repository.mjs';
 import { GalleryController } from './controller/gallery-controller.mjs';
@@ -19,11 +20,13 @@ import { SettingsController } from './controller/settings-controller.mjs';
 import { BackgroundIngestController } from './controller/background-ingest-controller.mjs';
 import { ImagePresetIngestController } from './controller/image-preset-ingest-controller.mjs';
 import { PresetCreationIngestController } from './controller/preset-creation-ingest-controller.mjs';
+import { LogoIngestController } from './controller/logo-ingest-controller.mjs';
 import { FontStyleController } from './controller/font-style-controller.mjs';
 import { FontStyleListController } from './controller/font-style-list-controller.mjs';
 import { Router } from './router/router.mjs';
 import { CategoryUtils } from './util/category-utils.mjs';
 import { AssetIngestService } from './service/asset-ingest-service.mjs';
+import { LogoResolverService } from './service/logo-resolver-service.mjs';
 import { ExportAsImage } from './service/export-as-image.mjs';
 import { ExportAsJson } from './service/export-as-json.mjs';
 import { ImageService } from './service/image-service.mjs';
@@ -44,12 +47,14 @@ async function init() {
         creationRepository: new CreationRepository(db),
         backgroundRepository: new BackgroundRepository(db),
         imagePresetRepository: new ImagePresetRepository(db),
+        logoRepository: new LogoRepository(db),
         presetCreationRepository: new PresetCreationRepository(db),
         thumbnailRepository: new ThumbnailRepository(db),
         imageUrlManager: new ImageUrlManager(),
         preferences: new Preferences(),
         categoryUtils: new CategoryUtils(),
         markdownRenderer: new MarkdownRenderer(),
+        logoResolverService: new LogoResolverService(),
         fontStyleController,
         calloutStyleController
     });
@@ -67,10 +72,12 @@ async function init() {
     // 2. Render Base Frame
     const backgroundIngestController = new BackgroundIngestController(deps);
     const imagePresetIngestController = new ImagePresetIngestController(deps);
+    const logoIngestController = new LogoIngestController(deps);
     const presetCreationIngestController = new PresetCreationIngestController(deps);
     await Promise.all([
         backgroundIngestController.ingest(),
         imagePresetIngestController.ingest(),
+        logoIngestController.ingest(),
         presetCreationIngestController.ingest(),
         fontStyleController.init(),
         calloutStyleController.init()

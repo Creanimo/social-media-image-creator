@@ -1,3 +1,4 @@
+import { Image } from '../model/image.mjs';
 import { BaseRepository } from './base-repository.mjs';
 
 /**
@@ -13,7 +14,7 @@ export class BackgroundRepository extends BaseRepository {
 
     /**
      * Saves a background to the database.
-     * @param {object} background
+     * @param {Image|object} background
      * @returns {Promise<void>}
      */
     async save(background) {
@@ -22,40 +23,34 @@ export class BackgroundRepository extends BaseRepository {
             return this._putRaw(background.toData());
         }
 
-        // Deep clone to ensure we have a plain object, while preserving Blobs
-        const sanitize = (obj) => {
-            if (obj instanceof Blob) return obj;
-            if (Array.isArray(obj)) return obj.map(sanitize);
-            if (obj !== null && typeof obj === 'object') {
-                const cleaned = {};
-                for (const key in obj) {
-                    if (Object.prototype.hasOwnProperty.call(obj, key)) {
-                        cleaned[key] = sanitize(obj[key]);
-                    }
-                }
-                return cleaned;
-            }
-            return obj;
+        const data = {
+            id: background.id,
+            name: background.name,
+            imageBlob: background.imageBlob,
+            category: background.category || 'background'
         };
-
-        const data = sanitize(background);
         return this._putRaw(data);
     }
 
     /**
      * Gets a background by ID.
      * @param {string} id
-     * @returns {Promise<object|null>}
+     * @param {Dependencies} [deps]
+     * @returns {Promise<Image|null>}
      */
-    async get(id) {
-        return this._getRaw(id);
+    async get(id, deps = null) {
+        const data = await this._getRaw(id);
+        if (!data) return null;
+        return new Image(data.id, data.imageBlob, data.category || 'background', data.name || 'Untitled', deps);
     }
 
     /**
      * Gets all backgrounds.
-     * @returns {Promise<object[]>}
+     * @param {Dependencies} [deps]
+     * @returns {Promise<Image[]>}
      */
-    async getAll() {
-        return this._getAllRaw();
+    async getAll(deps = null) {
+        const rawResults = await this._getAllRaw();
+        return rawResults.map(data => new Image(data.id, data.imageBlob, data.category || 'background', data.name || 'Untitled', deps));
     }
 }

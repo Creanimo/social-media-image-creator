@@ -43,6 +43,17 @@
             </div>
             <wa-button slot="footer" variant="primary" class="add-layer-type-btn" data-type="image" style="width: 100%;">Add Image Layer</wa-button>
         </wa-card>
+
+        <wa-card class="layer-type-card" data-type="logo" style="cursor: pointer;">
+            <div class="wa-cluster" style="align-items: center; gap: 15px; padding: 15px;">
+                <wa-icon name="{{icons.layerTypes.logo}}" library="tabler" style="font-size: 2rem; color: var(--wa-color-primary-600);"></wa-icon>
+                <div class="wa-stack" style="gap: 2px;">
+                    <wa-text size="large"><strong>Logo Layer</strong></wa-text>
+                    <wa-text size="small" style="opacity: 0.7;">Add a brand logo with automatic resolution.</wa-text>
+                </div>
+            </div>
+            <wa-button slot="footer" variant="primary" class="add-layer-type-btn" data-type="logo" style="width: 100%;">Add Logo Layer</wa-button>
+        </wa-card>
     </div>
     <wa-button slot="footer" variant="neutral" id="close-add-layer-modal">Cancel</wa-button>
 </wa-dialog>

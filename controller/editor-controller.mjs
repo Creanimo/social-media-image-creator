@@ -17,6 +17,7 @@ import { FontLayerFormAdapter } from '../adapter/layer-form-adapters/font-layer-
 import { IconLayerFormAdapter } from '../adapter/layer-form-adapters/icon-layer-form-adapter.mjs';
 import { IconCalloutLayerFormAdapter } from '../adapter/layer-form-adapters/icon-callout-layer-form-adapter.mjs';
 import { ImageLayerFormAdapter } from '../adapter/layer-form-adapters/image-layer-form-adapter.mjs';
+import { LogoLayerFormAdapter } from '../adapter/layer-form-adapters/logo-layer-form-adapter.mjs';
 import { LivePreviewPipeline } from './live-preview-pipeline.mjs';
 
 export class EditorController {
@@ -61,7 +62,8 @@ export class EditorController {
             .register(new FontLayerFormAdapter(deps.markdownRenderer))
             .register(new IconLayerFormAdapter())
             .register(new IconCalloutLayerFormAdapter())
-            .register(new ImageLayerFormAdapter());
+            .register(new ImageLayerFormAdapter())
+            .register(new LogoLayerFormAdapter());
     }
 
     /**
@@ -169,6 +171,25 @@ export class EditorController {
                     this.#currentCreation = repaired;
                     await this.#deps.creationRepository.save(this.#currentCreation);
                 }
+
+                // Auto-resolve logos
+                const availableLogos = await this.#deps.logoRepository.getAll();
+                let hasChanges = false;
+                const updatedLayers = this.#currentCreation.layers.map(layer => {
+                    if (layer.type === 'logo') {
+                        const resolvedId = this.#deps.logoResolverService.resolveLogoId(layer.logoId, availableLogos);
+                        if (resolvedId && resolvedId !== layer.logoId) {
+                            hasChanges = true;
+                            return layer.withLogoId(resolvedId);
+                        }
+                    }
+                    return layer;
+                });
+
+                if (hasChanges) {
+                    this.#currentCreation = this.#currentCreation.withLayers(updatedLayers);
+                    await this.#deps.creationRepository.save(this.#currentCreation);
+                }
             }
         } else {
             // Create a new blank creation if none is selected
@@ -206,7 +227,8 @@ export class EditorController {
             const uploadedImages = await this.#deps.imageRepository.getAll(this.#deps);
             const presetBackgrounds = await this.#deps.backgroundRepository.getAll();
             const imagePresets = await this.#deps.imagePresetRepository.getAll();
-            const allImages = [...uploadedImages, ...presetBackgrounds, ...imagePresets];
+            const logoPresets = await this.#deps.logoRepository.getAll();
+            const allImages = [...uploadedImages, ...presetBackgrounds, ...imagePresets, ...logoPresets];
 
             let bgSrc = null;
             if (this.#currentCreation?.backgroundImageId) {
@@ -222,6 +244,7 @@ export class EditorController {
                 uploadedImages,
                 presetBackgrounds,
                 imagePresets,
+                logoPresets,
                 allImages,
                 fontStyles: this.#fontStyleController.getStyles(),
                 fontStyleUrls: this.#fontStyleController.getUrls(),
@@ -243,7 +266,8 @@ export class EditorController {
             const uploadedImages = await this.#deps.imageRepository.getAll(this.#deps);
             const presetBackgrounds = await this.#deps.backgroundRepository.getAll();
             const imagePresets = await this.#deps.imagePresetRepository.getAll();
-            const allImages = [...uploadedImages, ...presetBackgrounds, ...imagePresets];
+            const logoPresets = await this.#deps.logoRepository.getAll();
+            const allImages = [...uploadedImages, ...presetBackgrounds, ...imagePresets, ...logoPresets];
 
             const renderData = {
                 presets: this.#presets,
@@ -251,6 +275,7 @@ export class EditorController {
                 uploadedImages,
                 presetBackgrounds,
                 imagePresets,
+                logoPresets,
                 allImages,
                 fontStyles: this.#fontStyleController.getStyles(),
                 fontStyleUrls: this.#fontStyleController.getUrls(),
@@ -724,5 +749,27 @@ export class EditorController {
 
         // Modal events
         // (Handled by ModalManager and Modal classes)
+
+        // Logo Selection
+        sidebar.querySelectorAll('.logo-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const logoId = card.getAttribute('data-logo-id');
+                const index = parseInt(card.getAttribute('data-layer-index'));
+                const logoIdInput = sidebar.querySelector(`input[name="layer-${index}-logoId"]`);
+                if (logoIdInput) {
+                    logoIdInput.value = logoId;
+                    // Trigger live preview
+                    const pipeline = new LivePreviewPipeline(getIframe(), sidebar);
+                    pipeline.sendUpdate(`layer-${index}-logoId`, logoId);
+                    // Persistent save
+                    debouncedAutoSave();
+                    // Update UI (active state)
+                    sidebar.querySelectorAll(`.logo-card[data-layer-index="${index}"]`).forEach(c => {
+                        c.classList.toggle('active', c === card);
+                        c.style.border = c === card ? '2px solid var(--wa-color-primary-600)' : '2px solid transparent';
+                    });
+                }
+            });
+        });
     }
 }

@@ -15,7 +15,7 @@ const LivePreviewReceiver = {
         }
     },
     UPDATE_LAYER: (data) => {
-        const { index, offsetX, offsetY, size, color, width, html, brightness, contrast, sepia, hue, saturate } = data;
+        const { index, offsetX, offsetY, size, color, width, html, brightness, contrast, sepia, hue, saturate, src, opacity } = data;
         const layer = document.querySelector(`[data-index="${index}"]`);
         if (layer) {
             if (offsetX !== undefined || offsetY !== undefined) {
@@ -80,6 +80,20 @@ const LivePreviewReceiver = {
                 if (img) {
                     img.style.width = width ? `${width}px` : '';
                 }
+
+                // For logo layers, the width is also on the layer container
+                if (layer.classList.contains('logo-layer')) {
+                    layer.style.width = width ? `${width}px` : '';
+                }
+            }
+            if (src !== undefined) {
+                const img = layer.querySelector('img');
+                if (img) {
+                    img.src = src;
+                }
+            }
+            if (opacity !== undefined) {
+                layer.style.opacity = !isNaN(opacity) ? opacity / 100 : 1;
             }
             if (html !== undefined) {
                 // For font layers

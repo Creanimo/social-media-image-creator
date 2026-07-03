@@ -4,6 +4,7 @@ import { FontLayer } from './font-layer.mjs';
 import { IconLayer } from './icon-layer.mjs';
 import { IconCalloutLayer } from './icon-callout-layer.mjs';
 import { ImageLayer } from './image-layer.mjs';
+import { LogoLayer } from './logo-layer.mjs';
 import { Dependencies } from '../util/dependencies.mjs';
 
 /**
@@ -64,6 +65,9 @@ export class Creation {
                 }
                 if (layerData.type === 'image') {
                     return new ImageLayer(layerData.id, layerData, deps);
+                }
+                if (layerData.type === 'logo') {
+                    return new LogoLayer(layerData.id, layerData, deps);
                 }
                 return new Layer(layerData.id, layerData.name, layerData.visible, deps);
             });

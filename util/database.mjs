@@ -73,6 +73,11 @@ export class Database {
         if (!db.objectStoreNames.contains('thumbnails')) {
             db.createObjectStore('thumbnails', { keyPath: 'id' });
         }
+
+        // Preset logos store
+        if (!db.objectStoreNames.contains('logos')) {
+            db.createObjectStore('logos', { keyPath: 'id' });
+        }
     }
 
     /**

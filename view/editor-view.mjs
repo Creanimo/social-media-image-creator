@@ -14,11 +14,13 @@ export class EditorView {
     #layerIconTemplate;
     #layerIconCalloutTemplate;
     #layerImageTemplate;
+    #layerLogoTemplate;
     #canvasTemplate;
     #canvasLayerFontTemplate;
     #canvasLayerIconTemplate;
     #canvasLayerIconCalloutTemplate;
     #canvasLayerImageTemplate;
+    #canvasLayerLogoTemplate;
     #imageCardTemplate;
     #iconPickerTemplate;
     #colorPickerTemplate;
@@ -42,10 +44,12 @@ export class EditorView {
         this.#layerIconTemplate = null;
         this.#layerIconCalloutTemplate = null;
         this.#layerImageTemplate = null;
+        this.#layerLogoTemplate = null;
         this.#canvasLayerFontTemplate = null;
         this.#canvasLayerIconTemplate = null;
         this.#canvasLayerIconCalloutTemplate = null;
         this.#canvasLayerImageTemplate = null;
+        this.#canvasLayerLogoTemplate = null;
         this.#imageCardTemplate = null;
         this.#iconPickerTemplate = null;
         this.#urlManager = urlManager;
@@ -53,7 +57,7 @@ export class EditorView {
     }
 
     async loadTemplates() {
-        const [editorRes, sidebarRes, sidebarGeneralRes, sidebarBackgroundRes, sidebarLayersRes, layerFontRes, layerIconRes, layerIconCalloutRes, layerImageRes, imageCardRes, iconPickerRes, colorPickerRes, modalRes, addLayerModalRes, canvasRes, canvasLayerFontRes, canvasLayerIconRes, canvasLayerIconCalloutRes, canvasLayerImageRes] = await Promise.all([
+        const [editorRes, sidebarRes, sidebarGeneralRes, sidebarBackgroundRes, sidebarLayersRes, layerFontRes, layerIconRes, layerIconCalloutRes, layerImageRes, layerLogoRes, imageCardRes, iconPickerRes, colorPickerRes, modalRes, addLayerModalRes, canvasRes, canvasLayerFontRes, canvasLayerIconRes, canvasLayerIconCalloutRes, canvasLayerImageRes, canvasLayerLogoRes] = await Promise.all([
             fetch('view/templates/editor.mustache'),
             fetch('view/templates/editor-sidebar.mustache'),
             fetch('view/templates/editor-sidebar-general.mustache'),
@@ -63,6 +67,7 @@ export class EditorView {
             fetch('view/templates/editor-sidebar-layer-icon.mustache'),
             fetch('view/templates/editor-sidebar-layer-icon-callout.mustache'),
             fetch('view/templates/editor-sidebar-layer-image.mustache'),
+            fetch('view/templates/editor-sidebar-layer-logo.mustache'),
             fetch('view/templates/image-card.mustache'),
             fetch('view/templates/icon-picker.mustache'),
             fetch('view/templates/color-picker.mustache'),
@@ -72,7 +77,8 @@ export class EditorView {
             fetch('view/templates/canvas-layer-font.mustache'),
             fetch('view/templates/canvas-layer-icon.mustache'),
             fetch('view/templates/canvas-layer-icon-callout.mustache'),
-            fetch('view/templates/canvas-layer-image.mustache')
+            fetch('view/templates/canvas-layer-image.mustache'),
+            fetch('view/templates/canvas-layer-logo.mustache')
         ]);
         this.#template = await editorRes.text();
         this.#sidebarTemplate = await sidebarRes.text();
@@ -83,6 +89,7 @@ export class EditorView {
         this.#layerIconTemplate = await layerIconRes.text();
         this.#layerIconCalloutTemplate = await layerIconCalloutRes.text();
         this.#layerImageTemplate = await layerImageRes.text();
+        this.#layerLogoTemplate = await layerLogoRes.text();
         this.#imageCardTemplate = await imageCardRes.text();
         this.#iconPickerTemplate = await iconPickerRes.text();
         this.#colorPickerTemplate = await colorPickerRes.text();
@@ -93,6 +100,7 @@ export class EditorView {
         this.#canvasLayerIconTemplate = await canvasLayerIconRes.text();
         this.#canvasLayerIconCalloutTemplate = await canvasLayerIconCalloutRes.text();
         this.#canvasLayerImageTemplate = await canvasLayerImageRes.text();
+        this.#canvasLayerLogoTemplate = await canvasLayerLogoRes.text();
     }
 
     /**
@@ -123,6 +131,7 @@ export class EditorView {
             'layer-icon': this.#layerIconTemplate,
             'layer-icon-callout': this.#layerIconCalloutTemplate,
             'layer-image': this.#layerImageTemplate,
+            'layer-logo': this.#layerLogoTemplate,
             'icon-picker': this.#iconPickerTemplate,
             'color-picker': this.#colorPickerTemplate
         };
@@ -147,7 +156,8 @@ export class EditorView {
             'canvas-layer-font': this.#canvasLayerFontTemplate,
             'canvas-layer-icon': this.#canvasLayerIconTemplate,
             'canvas-layer-icon-callout': this.#canvasLayerIconCalloutTemplate,
-            'canvas-layer-image': this.#canvasLayerImageTemplate
+            'canvas-layer-image': this.#canvasLayerImageTemplate,
+            'canvas-layer-logo': this.#canvasLayerLogoTemplate
         };
         const canvasHtml = Mustache.render(this.#canvasTemplate, viewData, partials);
 
@@ -183,6 +193,7 @@ export class EditorView {
             'layer-icon': this.#layerIconTemplate,
             'layer-icon-callout': this.#layerIconCalloutTemplate,
             'layer-image': this.#layerImageTemplate,
+            'layer-logo': this.#layerLogoTemplate,
             'icon-picker': this.#iconPickerTemplate,
             'color-picker': this.#colorPickerTemplate
         };
@@ -191,18 +202,30 @@ export class EditorView {
         this.#sidebarContainer.innerHTML = renderedSidebar;
     }
 
-    #prepareViewData(creation, { presets = [], bgSrc = null, presetBackgrounds = [], allImages = [], fontStyles = [], fontStyleUrls = [], calloutStyles = [], calloutStyleUrls = [] } = {}) {
+    #prepareViewData(creation, { presets = [], bgSrc = null, presetBackgrounds = [], imagePresets = [], logoPresets = [], allImages = [], fontStyles = [], fontStyleUrls = [], calloutStyles = [], calloutStyleUrls = [] } = {}) {
         const layersWithMeta = creation ? creation.layers.map((layer, index) => {
             let src = null;
-            if (layer.type === 'image' && layer.imageId) {
-                const img = allImages.find(i => i.id === layer.imageId);
+            if ((layer.type === 'image' || layer.type === 'logo') && (layer.imageId || layer.logoId)) {
+                const imgId = layer.type === 'image' ? layer.imageId : layer.logoId;
+                const img = allImages.find(i => i.id === imgId);
                 if (img) {
                     src = this.#urlManager.createUrl(img.id, img.imageBlob);
                 }
             }
             const isImage = layer.type === 'image';
+            const isLogo = layer.type === 'logo';
             const filterData = isImage ? calculateFilters(layer) : {};
             const filterString = isImage ? getFilterString(filterData) : 'none';
+
+            let availableLogos = [];
+            if (isLogo) {
+                availableLogos = logoPresets.map(lp => ({
+                    ...lp,
+                    src: this.#urlManager.createUrl(lp.id, lp.imageBlob),
+                    isActive: lp.id === layer.logoId,
+                    layerIndex: index
+                }));
+            }
 
             return {
                 ...layer,
@@ -211,9 +234,12 @@ export class EditorView {
                 isIcon: layer.type === 'icon',
                 isIconCallout: layer.type === 'icon-callout',
                 isImage,
+                isLogo,
                 src,
                 ...filterData,
                 filterString,
+                opacityValue: layer.opacity !== undefined ? layer.opacity / 100 : 1,
+                availableLogos,
                 slotIcon: ICONS.slots[layer.slot] || ICONS.slots.default,
                 layerIcon: ICONS.layerTypes[layer.type] || ICONS.slots.default
             };
@@ -246,6 +272,8 @@ export class EditorView {
             bgSrc: bgSrc || 'none',
             currentPresetName: presets.find(p => p.width === creation?.width && p.height === creation?.height)?.name,
             presetBackgrounds,
+            imagePresets,
+            logoPresets,
             fontStyles,
             fontStyleUrls,
             calloutStyles,

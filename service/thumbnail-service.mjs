@@ -148,8 +148,9 @@ export class ThumbnailService {
         
         creationData.layers = await Promise.all(creationData.layers.map(async (l, index) => {
             const isImage = l.type === 'image';
-            const filterData = isImage ? calculateFilters(l) : {};
-            const filterString = isImage ? getFilterString(filterData) : 'none';
+            const isLogo = l.type === 'logo';
+            const filterData = (isImage || isLogo) ? calculateFilters(l) : {};
+            const filterString = (isImage || isLogo) ? getFilterString(filterData) : 'none';
 
             const mappedLayer = {
                 ...l,
@@ -158,12 +159,20 @@ export class ThumbnailService {
                 isIcon: l.type === 'icon',
                 isIconCallout: l.type === 'icon-callout',
                 isImage,
+                isLogo,
                 ...filterData,
                 filterString
             };
 
             if (mappedLayer.isImage && l.imageId) {
                 const img = await this.#deps.imageService.getImage(l.imageId);
+                if (img) {
+                    mappedLayer.src = this.#deps.imageUrlManager.createUrl(img.id, img.imageBlob);
+                }
+            }
+
+            if (mappedLayer.isLogo && l.logoId) {
+                const img = await this.#deps.imageService.getImage(l.logoId);
                 if (img) {
                     mappedLayer.src = this.#deps.imageUrlManager.createUrl(img.id, img.imageBlob);
                 }
@@ -177,20 +186,23 @@ export class ThumbnailService {
             fontLayerTpl, 
             iconLayerTpl, 
             calloutLayerTpl, 
-            imageLayerTpl
+            imageLayerTpl,
+            logoLayerTpl
         ] = await Promise.all([
             fetch('view/templates/canvas.mustache').then(r => r.text()),
             fetch('view/templates/canvas-layer-font.mustache').then(r => r.text()),
             fetch('view/templates/canvas-layer-icon.mustache').then(r => r.text()),
             fetch('view/templates/canvas-layer-icon-callout.mustache').then(r => r.text()),
-            fetch('view/templates/canvas-layer-image.mustache').then(r => r.text())
+            fetch('view/templates/canvas-layer-image.mustache').then(r => r.text()),
+            fetch('view/templates/canvas-layer-logo.mustache').then(r => r.text())
         ]);
 
         const partials = {
             'canvas-layer-font': fontLayerTpl,
             'canvas-layer-icon': iconLayerTpl,
             'canvas-layer-icon-callout': calloutLayerTpl,
-            'canvas-layer-image': imageLayerTpl
+            'canvas-layer-image': imageLayerTpl,
+            'canvas-layer-logo': logoLayerTpl
         };
 
         return Mustache.render(canvasTemplate, {

@@ -3,7 +3,8 @@ export const ICONS = {
         font: 'typography',
         icon: 'photo',
         'icon-callout': 'info-circle',
-        image: 'photo'
+        image: 'photo',
+        logo: 'brand-tabler'
     },
     slots: {
         'top-left': 'box-align-top-left',

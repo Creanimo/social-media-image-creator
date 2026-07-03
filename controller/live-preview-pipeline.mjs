@@ -25,7 +25,7 @@ export class LivePreviewPipeline {
                 y: parseInt(ySlider?.value)
             });
         } else if (name.startsWith('layer-')) {
-            const match = name.match(/layer-(\d+)-(offsetX|offsetY|size|color|width|text|name|brightness|contrast|sepia|hue|saturate)/);
+            const match = name.match(/layer-(\d+)-(offsetX|offsetY|size|color|width|text|name|brightness|contrast|sepia|hue|saturate|logoId|opacity)/);
             if (match) {
                 const index = parseInt(match[1]);
                 const field = match[2];
@@ -39,6 +39,8 @@ export class LivePreviewPipeline {
                 const sizeInput = this.#sidebar.querySelector(`wa-input[name="layer-${index}-size"]`);
                 const colorInput = this.#sidebar.querySelector(`input[name="layer-${index}-color"]`);
                 const widthSlider = this.#sidebar.querySelector(`wa-slider[name="layer-${index}-width"]`);
+                const opacitySlider = this.#sidebar.querySelector(`wa-slider[name="layer-${index}-opacity"]`);
+                const logoIdInput = this.#sidebar.querySelector(`input[name="layer-${index}-logoId"]`);
                 
                 let textValue = undefined;
                 if (field === 'text') {
@@ -67,6 +69,8 @@ export class LivePreviewPipeline {
                     size: sizeInput?.value ? parseInt(sizeInput.value) : null,
                     color: colorInput?.value,
                     width: widthSlider?.value ? parseInt(widthSlider.value) : null,
+                    opacity: opacitySlider?.value ? parseInt(opacitySlider.value) : undefined,
+                    src: field === 'logoId' ? this.#sidebar.querySelector(`.logo-card[data-logo-id="${logoIdInput.value}"] img`)?.src : undefined,
                     html
                 });
             }

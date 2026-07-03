@@ -2,6 +2,7 @@ import { FontLayer } from '../model/font-layer.mjs';
 import { IconLayer } from '../model/icon-layer.mjs';
 import { IconCalloutLayer } from '../model/icon-callout-layer.mjs';
 import { ImageLayer } from '../model/image-layer.mjs';
+import { LogoLayer } from '../model/logo-layer.mjs';
 
 /**
  * Factory for creating layers from types and presets.
@@ -33,6 +34,8 @@ export class LayerFactory {
                 return new IconCalloutLayer(null, data, this.#deps);
             case 'image':
                 return new ImageLayer(null, data, this.#deps);
+            case 'logo':
+                return new LogoLayer(null, data, this.#deps);
             default:
                 throw new Error(`Unknown layer type: ${type}`);
         }

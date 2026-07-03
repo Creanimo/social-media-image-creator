@@ -14,6 +14,8 @@ export class Dependencies {
     backgroundRepository;
     /** @type {import('../repository/image-preset-repository.mjs').ImagePresetRepository} */
     imagePresetRepository;
+    /** @type {import('../repository/logo-repository.mjs').LogoRepository} */
+    logoRepository;
     /** @type {import('../repository/preset-creation-repository.mjs').PresetCreationRepository} */
     presetCreationRepository;
     /** @type {import('../repository/thumbnail-repository.mjs').ThumbnailRepository} */
@@ -26,6 +28,8 @@ export class Dependencies {
     categoryUtils;
     /** @type {import('./markdown-renderer.mjs').MarkdownRenderer} */
     markdownRenderer;
+    /** @type {import('../service/logo-resolver-service.mjs').LogoResolverService} */
+    logoResolverService;
 
     // Services
     /** @type {import('../service/image-service.mjs').ImageService} */
@@ -58,12 +62,14 @@ export class Dependencies {
      * @param {import('../repository/creation-repository.mjs').CreationRepository} [deps.creationRepository]
      * @param {import('../repository/background-repository.mjs').BackgroundRepository} [deps.backgroundRepository]
      * @param {import('../repository/image-preset-repository.mjs').ImagePresetRepository} [deps.imagePresetRepository]
+     * @param {import('../repository/logo-repository.mjs').LogoRepository} [deps.logoRepository]
      * @param {import('../repository/preset-creation-repository.mjs').PresetCreationRepository} [deps.presetCreationRepository]
      * @param {import('../repository/thumbnail-repository.mjs').ThumbnailRepository} [deps.thumbnailRepository]
      * @param {import('./image-url-manager.mjs').ImageUrlManager} [deps.imageUrlManager]
      * @param {import('./preferences.mjs').Preferences} [deps.preferences]
      * @param {import('./category-utils.mjs').CategoryUtils} [deps.categoryUtils]
      * @param {import('./markdown-renderer.mjs').MarkdownRenderer} [deps.markdownRenderer]
+     * @param {import('../service/logo-resolver-service.mjs').LogoResolverService} [deps.logoResolverService]
      * @param {import('../service/image-service.mjs').ImageService} [deps.imageService]
      * @param {import('../service/layer-factory.mjs').LayerFactory} [deps.layerFactory]
      * @param {import('../service/export-as-image.mjs').ExportAsImage} [deps.exportAsImage]
@@ -77,8 +83,8 @@ export class Dependencies {
      */
     constructor({ 
         idGenerator, database, imageRepository, creationRepository, 
-        backgroundRepository, imagePresetRepository, presetCreationRepository, thumbnailRepository, imageUrlManager, 
-        preferences, categoryUtils, markdownRenderer, imageService, layerFactory, exportAsImage, 
+        backgroundRepository, imagePresetRepository, logoRepository, presetCreationRepository, thumbnailRepository, imageUrlManager, 
+        preferences, categoryUtils, markdownRenderer, logoResolverService, imageService, layerFactory, exportAsImage, 
         exportAsJson, importJson, assetIngestService, thumbnailService, modalManager,
         fontStyleController, calloutStyleController
     } = {}) {
@@ -88,12 +94,14 @@ export class Dependencies {
         this.creationRepository = creationRepository;
         this.backgroundRepository = backgroundRepository;
         this.imagePresetRepository = imagePresetRepository;
+        this.logoRepository = logoRepository;
         this.presetCreationRepository = presetCreationRepository;
         this.thumbnailRepository = thumbnailRepository;
         this.imageUrlManager = imageUrlManager;
         this.preferences = preferences;
         this.categoryUtils = categoryUtils;
         this.markdownRenderer = markdownRenderer;
+        this.logoResolverService = logoResolverService;
         this.imageService = imageService;
         this.layerFactory = layerFactory;
         this.exportAsImage = exportAsImage;

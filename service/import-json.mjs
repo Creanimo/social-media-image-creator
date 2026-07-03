@@ -67,9 +67,10 @@ export class ImportJson {
             const existingImage = await this.#deps.imageRepository.get(imageData.id);
             const existingBackground = await this.#deps.backgroundRepository.get(imageData.id);
             const existingPreset = await this.#deps.imagePresetRepository.get(imageData.id);
+            const existingLogo = await this.#deps.logoRepository.get(imageData.id);
 
-            if (existingImage || existingBackground || existingPreset) {
-                // If it already exists in the user's instance (as a normal image or a preset), don't override
+            if (existingImage || existingBackground || existingPreset || existingLogo) {
+                // If it already exists in the user's instance (as a normal image, a background, a preset, or a logo), don't override
                 continue;
             }
 

@@ -55,6 +55,9 @@ export class ExportAsJson {
             if (layer.type === 'image' && layer.imageId) {
                 ids.add(layer.imageId);
             }
+            if (layer.type === 'logo' && layer.logoId) {
+                ids.add(layer.logoId);
+            }
         }
 
         return Array.from(ids);
@@ -87,6 +90,12 @@ export class ExportAsJson {
                     const preset = await this.#deps.imagePresetRepository.get(id);
                     if (preset) {
                         imageData = preset;
+                    } else {
+                        // Check logo presets store
+                        const logo = await this.#deps.logoRepository.get(id);
+                        if (logo) {
+                            imageData = logo;
+                        }
                     }
                 }
             }

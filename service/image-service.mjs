@@ -34,17 +34,20 @@ export class ImageService {
     }
 
     /**
-     * Fetches an image by ID from either the image, background or image preset repository.
+     * Fetches an image by ID from either the image, background, logo or image preset repository.
      * @param {string} id
      * @returns {Promise<import('../model/image.mjs').Image|null>}
      */
     async getImage(id) {
         let img = await this.#deps.imageRepository.get(id, this.#deps);
         if (!img) {
-            img = await this.#deps.backgroundRepository.get(id);
+            img = await this.#deps.backgroundRepository.get(id, this.#deps);
         }
         if (!img) {
-            img = await this.#deps.imagePresetRepository.get(id);
+            img = await this.#deps.logoRepository.get(id, this.#deps);
+        }
+        if (!img) {
+            img = await this.#deps.imagePresetRepository.get(id, this.#deps);
         }
         return img;
     }

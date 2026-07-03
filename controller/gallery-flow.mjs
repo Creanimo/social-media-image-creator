@@ -76,6 +76,7 @@ export class GalleryFlow {
         const uploadedImages = await this.#deps.imageRepository.getAll(this.#deps);
         const presetBackgrounds = await this.#deps.backgroundRepository.getAll();
         const imagePresets = await this.#deps.imagePresetRepository.getAll();
+        const logoPresets = await this.#deps.logoRepository.getAll();
 
         const mapUploaded = img => ({
             id: img.id,
@@ -101,8 +102,12 @@ export class GalleryFlow {
             ...uploadedImages.filter(img => img.category === 'image').map(mapUploaded),
             ...imagePresets.map(preset => mapPreset(preset, 'image'))
         ];
+        const logos = [
+            ...uploadedImages.filter(img => img.category === 'logo').map(mapUploaded),
+            ...logoPresets.map(preset => mapPreset(preset, 'logo'))
+        ];
 
-        return { backgrounds, images };
+        return { backgrounds, images, logos };
     }
 
     async #handleSelect(id, tabId) {

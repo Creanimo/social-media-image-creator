@@ -10,13 +10,13 @@ export class Image {
     name;
     /** @type {string} **/
     imageBlob;
-    /** @type {'background'|'image'} **/
+    /** @type {'background'|'image'|'logo'} **/
     category;
 
     /**
      * @param {string|null} id
      * @param {string} imageBlob
-     * @param {'background'|'image'} [category='background']
+     * @param {'background'|'image'|'logo'} [category='background']
      * @param {string} [name='Untitled']
      * @param {Dependencies} [deps]
      */

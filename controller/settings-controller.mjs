@@ -2,6 +2,7 @@ import { SettingsView } from '../view/settings-view.mjs';
 import { BackgroundIngestController } from './background-ingest-controller.mjs';
 import { ImagePresetIngestController } from './image-preset-ingest-controller.mjs';
 import { PresetCreationIngestController } from './preset-creation-ingest-controller.mjs';
+import { LogoIngestController } from './logo-ingest-controller.mjs';
 
 export class SettingsController {
     #deps;
@@ -69,6 +70,19 @@ export class SettingsController {
                 await ingestController.ingest();
                 
                 alert('Preset templates repository has been rebuilt.');
+            }
+        });
+
+        container.querySelector('#rebuild-logos-btn')?.addEventListener('click', async () => {
+            if (confirm('Are you sure you want to rebuild the logo repository?')) {
+                // Clear the logos store
+                await this.#deps.database.clearStore('logos');
+                
+                // Re-ingest
+                const ingestController = new LogoIngestController(this.#deps);
+                await ingestController.ingest();
+                
+                alert('Logo repository has been rebuilt.');
             }
         });
     }

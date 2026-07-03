@@ -59,7 +59,8 @@ export class GalleryComponent {
         // Prepare view data based on config.tabs
         const tabLabels = {
             'backgrounds': 'Backgrounds',
-            'images': 'Images'
+            'images': 'Images',
+            'logos': 'Logos'
         };
 
         const tabsData = this.#config.tabs.map(tabId => ({

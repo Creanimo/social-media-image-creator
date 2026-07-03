@@ -18,7 +18,7 @@ export class GalleryController {
     constructor(deps, container) {
         this.#deps = deps;
         this.#gallery = new GalleryComponent(container, deps, {
-            tabs: ['backgrounds', 'images'],
+            tabs: ['backgrounds', 'images', 'logos'],
             onUpload: (file, category) => this.#handleUpload(file, category),
             onDelete: (id) => this.#handleDelete(id),
             onStartCreation: (id, category) => this.#handleStartCreation(id, category)
@@ -44,6 +44,7 @@ export class GalleryController {
         const uploadedImages = await this.#deps.imageRepository.getAll(this.#deps);
         const presetBackgrounds = await this.#deps.backgroundRepository.getAll();
         const imagePresets = await this.#deps.imagePresetRepository.getAll();
+        const logoPresets = await this.#deps.logoRepository.getAll();
 
         const mapUploaded = img => ({
             id: img.id,
@@ -69,10 +70,15 @@ export class GalleryController {
             ...uploadedImages.filter(img => img.category === 'image').map(mapUploaded),
             ...imagePresets.map(preset => mapPreset(preset, 'image'))
         ];
+        const logos = [
+            ...uploadedImages.filter(img => img.category === 'logo').map(mapUploaded),
+            ...logoPresets.map(preset => mapPreset(preset, 'logo'))
+        ];
 
         await this.#gallery.render({
             backgrounds: backgrounds,
-            images: images
+            images: images,
+            logos: logos
         });
 
         await this.#gallery.restoreState(state);

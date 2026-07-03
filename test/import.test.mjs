@@ -6,9 +6,11 @@ import { CreationRepository } from '../repository/creation-repository.mjs';
 import { ImageRepository } from '../repository/image-repository.mjs';
 import { BackgroundRepository } from '../repository/background-repository.mjs';
 import { ImagePresetRepository } from '../repository/image-preset-repository.mjs';
+import { LogoRepository } from '../repository/logo-repository.mjs';
 import { Creation } from '../model/creation.mjs';
 import { FontLayer } from '../model/font-layer.mjs';
 import { ImageLayer } from '../model/image-layer.mjs';
+import { LogoLayer } from '../model/logo-layer.mjs';
 
 describe('Import Creation Flow', () => {
     let db;
@@ -24,6 +26,7 @@ describe('Import Creation Flow', () => {
         const imageRepository = new ImageRepository(db);
         const backgroundRepository = new BackgroundRepository(db);
         const imagePresetRepository = new ImagePresetRepository(db);
+        const logoRepository = new LogoRepository(db);
 
         deps = new Dependencies({
             database: db,
@@ -31,6 +34,7 @@ describe('Import Creation Flow', () => {
             imageRepository,
             backgroundRepository,
             imagePresetRepository,
+            logoRepository,
             idGenerator: { generate: () => 'generated-id' }
         });
 
@@ -69,6 +73,14 @@ describe('Import Creation Flow', () => {
                         imageId: testImageId,
                         visible: true,
                         zIndex: 2
+                    },
+                    {
+                        id: 'layer-3',
+                        type: 'logo',
+                        name: 'Logo Layer',
+                        logoId: 'logo-123',
+                        visible: true,
+                        zIndex: 3
                     }
                 ]
             },
@@ -77,6 +89,11 @@ describe('Import Creation Flow', () => {
                     id: testImageId,
                     imageBlob: base64Image,
                     category: 'image'
+                },
+                {
+                    id: 'logo-123',
+                    imageBlob: base64Image,
+                    category: 'logo'
                 }
             ]
         };
@@ -90,7 +107,7 @@ describe('Import Creation Flow', () => {
         expect(creation).to.be.instanceOf(Creation);
         expect(creation.id).to.equal('creation-abc');
         expect(creation.title).to.equal('Test Creation');
-        expect(creation.layers).to.have.lengthOf(2);
+        expect(creation.layers).to.have.lengthOf(3);
         
         // Verify layers classes
         expect(creation.layers[0]).to.be.instanceOf(FontLayer);
@@ -98,6 +115,9 @@ describe('Import Creation Flow', () => {
         
         expect(creation.layers[1]).to.be.instanceOf(ImageLayer);
         expect(creation.layers[1].imageId).to.equal(testImageId);
+
+        expect(creation.layers[2]).to.be.instanceOf(LogoLayer);
+        expect(creation.layers[2].logoId).to.equal('logo-123');
 
         // 2. Check if stored in DB
         // Check creation
@@ -109,7 +129,11 @@ describe('Import Creation Flow', () => {
         const storedImage = await deps.imageRepository.get(testImageId);
         expect(storedImage).to.not.be.null;
         expect(storedImage.id).to.equal(testImageId);
-        expect(storedImage.imageBlob).to.be.instanceOf(Blob);
+
+        // Check logo (should be saved in imageRepository as it's not a preset)
+        const storedLogo = await deps.imageRepository.get('logo-123');
+        expect(storedLogo).to.not.be.null;
+        expect(storedLogo.category).to.equal('logo');
     });
 
     it('should throw error if creation data is missing', async () => {

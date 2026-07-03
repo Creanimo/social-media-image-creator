@@ -23,6 +23,7 @@ describe('Database (IndexedDB)', () => {
         expect(storeNames).to.include('images');
         expect(storeNames).to.include('creations');
         expect(storeNames).to.include('backgrounds');
+        expect(storeNames).to.include('logos');
     });
 
     it('should clear a store', async () => {
